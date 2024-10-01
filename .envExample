@@ -1,0 +1,5 @@
+DB_HOST=localhost
+DB_USER=optimeroot
+DB_PASSWORD=optimetest
+DB_NAME=optime
+DB_PORT=3306
