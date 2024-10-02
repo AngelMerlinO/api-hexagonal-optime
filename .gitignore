@@ -4,3 +4,7 @@ dist/
 .idea
 .env
 coverage/
+api-optime
+env
+__pycache__
+entorno_optime
