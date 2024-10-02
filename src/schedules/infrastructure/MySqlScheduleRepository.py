@@ -1,6 +1,7 @@
 from src.schedules.domain.ScheduleRepository import ScheduleRepository
 from src.schedules.domain.Schedule import Schedule
 from sqlalchemy.orm import Session
+from typing import List
 
 class MySqlScheduleRepository(ScheduleRepository):
     def __init__(self, db_session: Session):
@@ -12,10 +13,10 @@ class MySqlScheduleRepository(ScheduleRepository):
         self.db_session.refresh(schedule)
         return schedule
 
-    def find_by_user_id(self, user_id: int) -> Schedule:
-        schedule = self.db_session.query(Schedule).filter_by(user_id=user_id).first()
-        return schedule
-
+    def find_by_user_id(self, user_id: int) -> List[Schedule]:
+        schedules = self.db_session.query(Schedule).filter_by(user_id=user_id).all()
+        return schedules 
+    
     def find_by_id(self, schedule_id: int) -> Schedule:
         schedule = self.db_session.query(Schedule).filter_by(id=schedule_id).first()
         return schedule
@@ -23,3 +24,9 @@ class MySqlScheduleRepository(ScheduleRepository):
     def delete(self, schedule: Schedule):
         self.db_session.delete(schedule)
         self.db_session.commit()
+
+    def update(self, schedule: Schedule):
+        self.db_session.merge(schedule)
+        self.db_session.commit()
+        self.db_session.refresh(schedule)
+        return schedule
