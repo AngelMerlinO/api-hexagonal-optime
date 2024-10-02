@@ -14,6 +14,9 @@ class User(Base):
 
     # Relación con Schedule
     schedules = relationship('Schedule', back_populates='user')
+    
+    #Relación con Activities
+    activities = relationship('activities', back_populates='user') 
 
     def __init__(self, username: str, email: str, password: str):
         self.username = username
