@@ -8,7 +8,7 @@ class ScheduleRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_user_id(self, user_id: int) -> Schedule:
+    def find_by_user_id(self, user_id: int) -> List[Schedule]:
         pass
 
     @abstractmethod

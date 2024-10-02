@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.schedules.application.ScheduleCreator import ScheduleCreator
 from src.schedules.application.ScheduleDeleter import ScheduleDeleter
-from src.schedules.application.ScheduleUpdater import ScheduleUpdater  # Importar ScheduleUpdater
+from src.schedules.application.ScheduleUpdater import ScheduleUpdater
+from src.schedules.application.ScheduleRetriever import ScheduleRetriever
 from src.schedules.infrastructure.MySqlScheduleRepository import MySqlScheduleRepository
 from config.database import get_db
 from pydantic import BaseModel
@@ -98,5 +99,45 @@ def update_schedule(
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+@router.get("/schedules/{user_id}")
+def get_schedules(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    schedule_repo = MySqlScheduleRepository(db)
+    user_repo = MySqlUserRepository(db)
+    schedule_retriever = ScheduleRetriever(schedule_repo, user_repo)
+    try:
+        schedules = schedule_retriever.get_by_user_id(user_id)
+        schedules_data = []
+        for schedule in schedules:
+            schedule_data = {
+                "id": schedule.id,
+                "user_id": schedule.user_id,
+                "items": [
+                    {
+                        "nombre": item.nombre,
+                        "grupo": item.grupo,
+                        "cuatrimestre": item.cuatrimestre,
+                        "calif_cuatrimestre": item.calif_cuatrimestre,
+                        "calif_holgura": item.calif_holgura,
+                        "calif_seriacion": item.calif_seriacion,
+                        "lunes": item.lunes,
+                        "martes": item.martes,
+                        "miercoles": item.miercoles,
+                        "jueves": item.jueves,
+                        "viernes": item.viernes,
+                    }
+                    for item in schedule.schedule_items
+                ]
+            }
+            schedules_data.append(schedule_data)
+        return schedules_data
+    except UserNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ScheduleNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
