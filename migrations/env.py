@@ -1,32 +1,33 @@
+# migrations/env.py
+
 import os
-import sys  # Para modificar el sys.path
-from dotenv import load_dotenv
+import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from config.database import DATABASE_URL
 
-# Añadir el directorio 'src' al sys.path para que Python pueda encontrar los módulos
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-# Cargar las variables del archivo .env
-load_dotenv()
+# Añadir el directorio 'src' al sys.path
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src'))
 
 # Configurar la URL de la base de datos
 config = context.config
+
+# Importar la URL de la base de datos y Base
+from config.database import DATABASE_URL, Base
 config.set_main_option('sqlalchemy.url', DATABASE_URL)
 
 # Interpretar la configuración del archivo alembic.ini
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Importar el modelo de SQLAlchemy
-from users.domain.User import Base  # Asegúrate de que 'Base' se importe correctamente
+# Importar los modelos para que Alembic los detecte
+from src.users.domain.User import User
+from src.schedules.domain.Schedule import Schedule
+from src.schedules.domain.ScheduleItem import ScheduleItem
 
-# Añadir los metadatos de tus modelos (user.domain.User) para generar migraciones
+# Establecer los metadatos de los modelos
 target_metadata = Base.metadata
 
-# Funciones de run_migrations que Alembic utiliza para aplicar migraciones
 def run_migrations_offline():
     """Ejecutar migraciones en modo 'offline'."""
     url = config.get_main_option("sqlalchemy.url")
