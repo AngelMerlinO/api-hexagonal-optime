@@ -1,5 +1,3 @@
-# src/users/domain/User.py
-
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from config.database import Base
@@ -14,6 +12,8 @@ class User(Base):
 
     # Relación con Schedule
     schedules = relationship('Schedule', back_populates='user')
+    notifications = relationship('Notification', back_populates='user')
+
 
     def __init__(self, username: str, email: str, password: str):
         self.username = username
