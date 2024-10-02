@@ -1,6 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base  # Agregado
 from dotenv import load_dotenv
 
 # Cargar las variables del archivo .env
@@ -18,6 +19,9 @@ DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB
 # Crear el motor y sesión de SQLAlchemy
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Definir Base
+Base = declarative_base()  # Agregado
 
 def get_db():
     db = SessionLocal()
