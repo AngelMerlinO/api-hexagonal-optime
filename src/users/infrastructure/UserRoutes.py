@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.users.application.UserCreator import UserCreator
 from src.users.application.UserUpdater import UserUpdater
+from src.users.application.UserEliminator import UserEliminator
+from src.users.application.UserFindById import UserFindById
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from config.database import get_db
 from pydantic import BaseModel
@@ -19,7 +21,21 @@ class UserUpdate(BaseModel):
     username: str = None
     email: str = None
     password: str = None
-
+    
+@router.get("/users/{user_id}")
+def find_by_id(user_id: int, db: Session = Depends(get_db)):
+    repo = MySqlUserRepository(db)
+    user_finder = UserFindById(repo)
+    try:
+        user = user_finder.find_by_id(user_id)
+        return user
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Error finding user")
+    
+    
+    
 @router.post("/users/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
@@ -37,5 +53,15 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     try:
         user_updater.update(user_id, user.username, user.email, user.password)
         return {"message": "User updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    repo = MySqlUserRepository(db)
+    user_eliminator = UserEliminator(repo)
+    try:
+        user_eliminator.delete(user_id)
+        return {"message": f"User with ID {user_id} eliminated successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
