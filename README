@@ -2,6 +2,7 @@
 - Tener acceso a mysql 
 - Cargar tus datos en el archivo .env 
 - Correr el archivo config/create_db_user.sql
+- Agregar nueva migración 'alembic revision --autogenerate -m "Mensaje descriptivo de la migración"' 
 - ejecutar el comando 'alembic init migrations''
 - Ejecutar el siguiete comando para correr las migraciones : 'alembic upgrade head'
 - Ejecutar el api uvicorn main:app --reload
