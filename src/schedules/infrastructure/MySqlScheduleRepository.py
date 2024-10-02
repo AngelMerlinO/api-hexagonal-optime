@@ -23,3 +23,9 @@ class MySqlScheduleRepository(ScheduleRepository):
     def delete(self, schedule: Schedule):
         self.db_session.delete(schedule)
         self.db_session.commit()
+
+    def update(self, schedule: Schedule):
+        self.db_session.merge(schedule)
+        self.db_session.commit()
+        self.db_session.refresh(schedule)
+        return schedule

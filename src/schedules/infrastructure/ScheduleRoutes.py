@@ -1,9 +1,8 @@
-# src/schedules/infrastructure/ScheduleRoutes.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.schedules.application.ScheduleCreator import ScheduleCreator
 from src.schedules.application.ScheduleDeleter import ScheduleDeleter
+from src.schedules.application.ScheduleUpdater import ScheduleUpdater  # Importar ScheduleUpdater
 from src.schedules.infrastructure.MySqlScheduleRepository import MySqlScheduleRepository
 from config.database import get_db
 from pydantic import BaseModel
@@ -64,6 +63,35 @@ def delete_schedule(
     try:
         schedule_deleter.delete(schedule_id, user_id)
         return {"message": "Schedule deleted successfully"}
+    except UserNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ScheduleNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class ScheduleUpdateModel(BaseModel):
+    user_id: int
+    items: List[ScheduleItemModel]
+
+@router.put("/schedules/{schedule_id}")
+def update_schedule(
+    schedule_id: int,
+    schedule_data: ScheduleUpdateModel,
+    db: Session = Depends(get_db)
+):
+    schedule_repo = MySqlScheduleRepository(db)
+    user_repo = MySqlUserRepository(db)
+    schedule_updater = ScheduleUpdater(schedule_repo, user_repo)
+    try:
+        schedule = schedule_updater.update(
+            schedule_id,
+            schedule_data.user_id,
+            [item.dict() for item in schedule_data.items]
+        )
+        return {"message": "Schedule updated successfully", "schedule_id": schedule.id}
     except UserNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ScheduleNotFoundException as e:
