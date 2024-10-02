@@ -1,5 +1,5 @@
-from users.domain.UserRepository import UserRepository
-from users.domain.User import User
+from src.users.domain.UserRepository import UserRepository
+from src.users.domain.User import User
 
 class UserUpdater:
     def __init__(self, user_repository: UserRepository):
