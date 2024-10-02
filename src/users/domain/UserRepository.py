@@ -16,3 +16,8 @@ class UserRepository(ABC):
     def find_by_id(self, user_id: int) -> User:
         """Encuentra un usuario por su ID"""
         pass
+    
+    @abstractmethod
+    def delete(self, user: User):
+        """Elimina un usuario del repositorio"""
+        pass
