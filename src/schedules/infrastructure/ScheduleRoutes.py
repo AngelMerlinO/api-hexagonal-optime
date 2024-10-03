@@ -13,7 +13,10 @@ from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.users.domain.exceptions import UserNotFoundException
 from src.schedules.domain.exceptions import ScheduleNotFoundException
 
-router = APIRouter()
+router = APIRouter(
+    prefix=("/api/schedule/v1"),
+    tags=["schedules"]
+)
 
 # Modelos Pydantic
 class ScheduleItemModel(BaseModel):
@@ -33,7 +36,7 @@ class ScheduleCreateModel(BaseModel):
     user_id: int
     items: List[ScheduleItemModel]
 
-@router.post("/schedules/")
+@router.post("/")
 def create_schedule(
     schedule_data: ScheduleCreateModel,
     db: Session = Depends(get_db)
@@ -52,7 +55,7 @@ def create_schedule(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/schedules/{schedule_id}")
+@router.delete("/{schedule_id}")
 def delete_schedule(
     schedule_id: int,
     user_id: int,
@@ -77,7 +80,7 @@ class ScheduleUpdateModel(BaseModel):
     user_id: int
     items: List[ScheduleItemModel]
 
-@router.put("/schedules/{schedule_id}")
+@router.put("/{schedule_id}")
 def update_schedule(
     schedule_id: int,
     schedule_data: ScheduleUpdateModel,
@@ -101,7 +104,8 @@ def update_schedule(
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-@router.get("/schedules/{user_id}")
+    
+@router.get("/{user_id}")
 def get_schedules(
     user_id: int,
     db: Session = Depends(get_db)

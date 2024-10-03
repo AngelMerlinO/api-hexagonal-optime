@@ -21,7 +21,7 @@ class ScheduleItem(Base):
     viernes = Column(JSON, nullable=True)
 
     # Relación con Schedule
-    schedule = relationship('Schedule', back_populates='schedule_items')
+    schedule = relationship('Schedule', back_populates='schedule_items', cascade="all, delete")
 
     def __init__(self, nombre, grupo, cuatrimestre, calif_cuatrimestre, calif_holgura, calif_seriacion, lunes, martes, miercoles, jueves, viernes):
         self.nombre = nombre
