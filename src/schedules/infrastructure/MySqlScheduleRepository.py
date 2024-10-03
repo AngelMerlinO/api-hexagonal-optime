@@ -13,9 +13,11 @@ class MySqlScheduleRepository(ScheduleRepository):
         self.db_session.refresh(schedule)
         return schedule
 
-    def find_by_user_id(self, user_id: int) -> List[Schedule]:
-        schedules = self.db_session.query(Schedule).filter_by(user_id=user_id).all()
-        return schedules 
+    def find_by_user_id(self, user_id: int, skip: int = 0, limit: int = 3) -> List[Schedule]:
+        schedules = self.db_session.query(Schedule).filter_by(user_id=user_id).offset(skip).limit(limit).all()
+        if not schedules:
+            raise ValueError(f"No schedules found for user_id {user_id}")
+        return schedules
     
     def find_by_id(self, schedule_id: int) -> Schedule:
         schedule = self.db_session.query(Schedule).filter_by(id=schedule_id).first()
