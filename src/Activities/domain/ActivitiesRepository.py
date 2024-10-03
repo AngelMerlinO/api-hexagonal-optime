@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 from .Activities import Activities
 
 class ActivitiesRepository(ABC):
@@ -8,13 +9,17 @@ class ActivitiesRepository(ABC):
         pass
     
     @abstractmethod
-    def uptade(self, activities: Activities):
+    def update(self, activities: Activities):
         """Actualiza los datos de la actividad en el repositorio"""
         pass
     
     @abstractmethod
     def find_by_id(self, activities_id: int) -> Activities:
         """Encuentra una actividad por ID"""
+        pass
+    
+    @abstractmethod
+    def find_by_user_id(self, user_id: int) -> List[Activities]:
         pass
     
     @abstractmethod

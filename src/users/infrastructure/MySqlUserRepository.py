@@ -24,7 +24,7 @@ class MySqlUserRepository(UserRepository):
     
     def delete(self, user: User):
         if not user:
-            raise Exception(f"User with id {user} not found")
+            raise Exception(f"User with id {user.id} not found")
         
         self.db_session.delete(user)
         self.db_session.commit()
