@@ -10,7 +10,7 @@ class ActivitiesUpdater:
         activities = self.activities_repository.find_by_id(activities_id)
         
         if not activities:
-            raise ValueError(f"Activity with ID {activities_id} not found. ")
+            raise ValueError(f"Activity with ID {activities_id} not found.")
         
         if title:
             activities.title = title
