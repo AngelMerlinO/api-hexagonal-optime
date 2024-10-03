@@ -8,12 +8,12 @@ class ScheduleRetriever:
         self.schedule_repository = schedule_repository
         self.user_repository = user_repository
 
-    def get_by_user_id(self, user_id: int):
+    def get_by_user_id(self, user_id: int, skip: int = 0, limit: int = 10):
         user = self.user_repository.find_by_id(user_id)
         if not user:
             raise UserNotFoundException(f"User with id {user_id} does not exist")
 
-        schedules = self.schedule_repository.find_by_user_id(user_id)
+        schedules = self.schedule_repository.find_by_user_id(user_id, skip=skip, limit=limit)
         if not schedules:
             raise ScheduleNotFoundException(f"No schedules found for user with id {user_id}")
 
