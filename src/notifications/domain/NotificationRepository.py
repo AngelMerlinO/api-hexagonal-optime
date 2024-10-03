@@ -16,6 +16,10 @@ class NotificationRepository(ABC):
     @abstractmethod
     def find_by_user_id(self, user_id: int) -> List[Notification]:
         pass
+    
+    @abstractmethod
+    def update(self, notification_id: int) -> Notification:
+        pass
 
     @abstractmethod
     def delete(self, notification: Notification):

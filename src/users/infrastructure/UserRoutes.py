@@ -32,9 +32,7 @@ def find_by_id(user_id: int, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Error finding user")
-    
-    
+        raise HTTPException(status_code=400, detail="Error finding user")  
     
 @router.post("/users/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
