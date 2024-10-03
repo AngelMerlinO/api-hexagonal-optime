@@ -7,6 +7,7 @@ from src.users.application.UserFindById import UserFindById
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from config.database import get_db
 from pydantic import BaseModel
+from fastapi import Query
 
 # Crear el router específico para usuarios
 router = APIRouter(
@@ -57,12 +58,18 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+@router.delete("/")
+def delete_user(
+    user_id: int = Query(..., description="ID of the user to be deleted"),
+    db: Session = Depends(get_db)
+):
     repo = MySqlUserRepository(db)
     user_eliminator = UserEliminator(repo)
+    
     try:
-        user_eliminator.delete(user_id)
+        user_eliminator.delete(user_id) 
         return {"message": f"User with ID {user_id} eliminated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

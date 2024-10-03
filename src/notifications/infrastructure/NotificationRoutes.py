@@ -8,6 +8,7 @@ from src.notifications.application.NotificationEliminator import NotificationEli
 from config.database import get_db
 from pydantic import BaseModel
 from typing import Optional
+from fastapi import Query
 
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
@@ -103,8 +104,12 @@ def update_notifications(
         # Capturamos y mostramos el error completo en la respuesta
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
-@router.delete("/{notification_id}")
-def delete_notifications(notification_id: int, db: Session = Depends(get_db)):
+@router.delete("/")
+def delete_notifications(
+    notification_id = Query(..., description="ID of the notification to be deleted"),
+    db: Session = Depends(get_db)
+    ):
+    
     repo = MySqlNotificationRepository(db)
     notification_eliminator = NotificationEliminator(repo)
     
