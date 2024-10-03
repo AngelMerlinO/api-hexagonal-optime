@@ -74,9 +74,11 @@ Guía de Instalación y Ejecución
   6. Crear el archivo `.env` utilizando el ejemplo proporcionado en el proyecto.
   7. Configurar los tokens de acceso de servicios externos como Mercado Pago o Meta API en tu archivo `.env`.
   8. Ejecutar las migraciones de la base de datos: `alembic upgrade head`
-  9. Iniciar la aplicación: `uvicorn main:app --reload`
-  10. Iniciar ngrok para exponer tu aplicación: `ngrok http 8000`
-  11. Testear los endpoints utilizando Postman: [Documentación de Postman](https://documenter.getpostman.com/view/16907391/UUy1eZ6T)
+  9. Iniciar ngrok para exponer tu aplicación: `ngrok http 8000`.
+  10. Agregar el URL  de ngrok en el archivo `.env`.
+  11. Iniciar la aplicación: `uvicorn main:app --reload`
+  
+  12. Testear los endpoints utilizando Postman: [Documentación de Postman](https://documenter.getpostman.com/view/16907391/UUy1eZ6T)
 
 **Ejecución de Pruebas:**
 Para ejecutar los tests:
