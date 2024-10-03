@@ -30,7 +30,7 @@ class MessageResponseModel(BaseModel):
         orm_mode = True  # Habilitar orm_mode
 
 
-@router.post("/send-message", response_model=MessageResponseModel)
+@router.post("/api/send-message/v1", response_model=MessageResponseModel)
 def send_message(message_data: MessageCreateModel, db: Session = Depends(get_db)):
     message_repo = MySqlMessageRepository(db)
     message_sender = MessageSender(message_repo)
