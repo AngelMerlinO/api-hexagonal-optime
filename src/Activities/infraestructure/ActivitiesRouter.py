@@ -9,6 +9,7 @@ from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from config.database import get_db
 from pydantic import BaseModel
 from datetime import date
+from fastapi import Query
 
 
 from src.users.domain.exceptions import UserNotFoundException
@@ -112,8 +113,11 @@ def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Sess
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{activities_id}")
-def delete_activities(activities_id: int, db: Session = Depends(get_db)):
+@router.delete("/")
+def delete_activities(
+    activities_id = Query(..., description="ID of the activity to be deleted"), 
+    db: Session = Depends(get_db)
+    ):
     repo = MySqlActivitiesRepository(db)
     activities_eliminator = ActivitiesEliminator(repo) 
     try:

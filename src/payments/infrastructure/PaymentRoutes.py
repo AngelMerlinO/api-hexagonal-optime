@@ -9,7 +9,9 @@ from typing import List, Optional
 from src.users.domain.exceptions import UserNotFoundException
 from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 
-router = APIRouter()
+router = APIRouter(
+    prefix=("/api/payments/v1")
+)
 
 class PaymentItemModel(BaseModel):
     title: str
@@ -26,7 +28,7 @@ class PaymentCreateModel(BaseModel):
     payer: PayerModel
     description: Optional[str] = None
 
-@router.post("/payments/")
+@router.post("/")
 async def create_payment(
     payment_data: PaymentCreateModel,
     db: Session = Depends(get_db)
@@ -47,7 +49,7 @@ async def create_payment(
     except PaymentProcessingException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/payments/notifications")
+@router.post("/notifications")
 async def receive_notifications(request: Request):
     db = SessionLocal()
     try:
@@ -73,7 +75,7 @@ async def receive_notifications(request: Request):
         print("Sesión de base de datos cerrada")
 
 
-@router.get("/payments/retorno")
+@router.get("/retorno")
 async def payment_return(request: Request, db: Session = Depends(get_db)):
     query_params = request.query_params
     status_param = query_params.get("status")
@@ -113,7 +115,7 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
             "status": status_param
         }
 
-@router.get("/payments/status/{payment_id}")
+@router.get("/status/{payment_id}")
 async def get_payment_status(payment_id: str, db: Session = Depends(get_db)):
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
