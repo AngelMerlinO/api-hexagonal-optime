@@ -78,7 +78,7 @@ Guía de Instalación y Ejecución
   10. Agregar el URL  de ngrok en el archivo `.env`.
   11. Iniciar la aplicación: `uvicorn main:app --reload`
   
-  12. Testear los endpoints utilizando Postman: [Documentación de Postman](https://documenter.getpostman.com/view/16907391/UUy1eZ6T)
+  12. Testear los endpoints utilizando Postman: [Documentación de Postman Api-Optime](https://documenter.getpostman.com/view/30415321/2sAXxLBZW6#79b970a8-df6b-486c-936c-eb714da4815cT)
 
 **Ejecución de Pruebas:**
 Para ejecutar los tests:
