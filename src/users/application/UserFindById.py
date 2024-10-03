@@ -9,6 +9,6 @@ class UserFindById:
         user = self.user_repository.find_by_id(user_id)
         
         if not user:
-            raise ValueError(f"User with ID {user_id} does not existent")
+            raise ValueError(f"User with ID {user_id} not found")
         
         return user
