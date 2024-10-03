@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from src.schedules.application.ScheduleCreator import ScheduleCreator
 from src.schedules.application.ScheduleDeleter import ScheduleDeleter
@@ -108,13 +108,15 @@ def update_schedule(
 @router.get("/{user_id}")
 def get_schedules(
     user_id: int,
+    skip: int = Query(0, ge=0, description="Number of elements to skip"),
+    limit: int = Query(6, ge=1, le=100, description="Maximum number of items to return"),
     db: Session = Depends(get_db)
 ):
     schedule_repo = MySqlScheduleRepository(db)
     user_repo = MySqlUserRepository(db)
     schedule_retriever = ScheduleRetriever(schedule_repo, user_repo)
     try:
-        schedules = schedule_retriever.get_by_user_id(user_id)
+        schedules = schedule_retriever.get_by_user_id(user_id, skip=skip, limit=limit)
         schedules_data = []
         for schedule in schedules:
             schedule_data = {
