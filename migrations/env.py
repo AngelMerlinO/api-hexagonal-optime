@@ -27,6 +27,7 @@ from src.schedules.domain.ScheduleItem import ScheduleItem
 from src.notifications.domain.Notification import Notification
 from src.Activities.domain.Activities import Activities
 from src.payments.domain.Payment import Payment 
+from src.messaging.domain.Message import Message
 
 # Establecer los metadatos de los modelos
 target_metadata = Base.metadata
