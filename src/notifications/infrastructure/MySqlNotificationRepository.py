@@ -21,6 +21,10 @@ class MySqlNotificationRepository(NotificationRepository):
         notifications = self.db_session.query(Notification).filter_by(user_id=user_id).all()
         return notifications
 
+    def update(self, notification: Notification):
+        self.db_session.merge(notification)
+        self.db_session.commit()
+
     def delete(self, notification: Notification):
         self.db_session.delete(notification)
         self.db_session.commit()
