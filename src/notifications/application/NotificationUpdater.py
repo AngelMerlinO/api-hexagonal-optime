@@ -20,4 +20,4 @@ class NotificationUpdater:
         if link:
             notifications.link = link
         
-        self.notification_repository.updated(notifications)
+        self.notification_repository.update(notifications)

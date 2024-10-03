@@ -22,8 +22,10 @@ class MySqlNotificationRepository(NotificationRepository):
         return notifications
 
     def update(self, notification: Notification):
-        self.db_session.merge(notification)
+        self.db_session.merge(notification)  # Usar merge para combinar el objeto actualizado
         self.db_session.commit()
+        self.db_session.refresh(notification)  # Refrescar el objeto para obtener los últimos cambios
+        return notification  # Asegúrate de retornar el objeto actualizado
 
     def delete(self, notification: Notification):
         self.db_session.delete(notification)
