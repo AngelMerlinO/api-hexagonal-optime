@@ -13,7 +13,9 @@ class User(Base):
     # Relación con Schedule
     schedules = relationship('Schedule', back_populates='user')
     notifications = relationship('Notification', back_populates='user')
-    activities = relationship('Activities', back_populates='user') 
+    activities = relationship('Activities', back_populates='user')     
+    payments = relationship('Payment', back_populates='user')
+
 
     def __init__(self, username: str, email: str, password: str):
         self.username = username
