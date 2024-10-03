@@ -14,7 +14,10 @@ from datetime import date
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/act/v1",
+    tags=["activities"]
+)
 
 class ActivitiesCreate(BaseModel):
     title: str
@@ -34,7 +37,7 @@ class ActivitiesUpdate(BaseModel):
     type: str = None
     status: str = None
     
-@router.get("/act/{activities_id}")
+@router.get("/{activities_id}")
 def find_by_id(activities_id: int, db: Session = Depends(get_db)):
     repo = MySqlActivitiesRepository(db)
     activities_finder = ActivitiesFindByID(repo)
@@ -49,7 +52,7 @@ def find_by_id(activities_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"Error finding activities: {str(e)}")
 
     
-@router.post("/act/")
+@router.post("/")
 def create_activities(
     activity_data: ActivitiesCreate,
     db: Session = Depends(get_db)
@@ -77,7 +80,7 @@ def create_activities(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.put("/act/{activities_id}")
+@router.put("/{activities_id}")
 def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Session = Depends(get_db)):
     repo = MySqlActivitiesRepository(db)
     activities_updater = ActivitiesUpdater(repo)
@@ -109,7 +112,7 @@ def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Sess
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/act/{activities_id}")
+@router.delete("/{activities_id}")
 def delete_activities(activities_id: int, db: Session = Depends(get_db)):
     repo = MySqlActivitiesRepository(db)
     activities_eliminator = ActivitiesEliminator(repo) 
