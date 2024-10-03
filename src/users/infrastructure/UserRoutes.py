@@ -9,7 +9,10 @@ from config.database import get_db
 from pydantic import BaseModel
 
 # Crear el router específico para usuarios
-router = APIRouter()
+router = APIRouter(
+    prefix=("/api/users/v1"),
+    tags=['users']
+)
 
 # Modelo Pydantic para crear y actualizar usuarios
 class UserCreate(BaseModel):
@@ -22,7 +25,7 @@ class UserUpdate(BaseModel):
     email: str = None
     password: str = None
     
-@router.get("/users/{user_id}")
+@router.get("/{user_id}")
 def find_by_id(user_id: int, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
     user_finder = UserFindById(repo)
@@ -34,7 +37,7 @@ def find_by_id(user_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail="Error finding user")  
     
-@router.post("/users/")
+@router.post("/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
     user_creator = UserCreator(repo)
@@ -44,7 +47,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/users/{user_id}")
+@router.put("/{user_id}")
 def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
     user_updater = UserUpdater(repo)
@@ -54,7 +57,7 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.delete("/users/{user_id}")
+@router.delete("/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
     user_eliminator = UserEliminator(repo)

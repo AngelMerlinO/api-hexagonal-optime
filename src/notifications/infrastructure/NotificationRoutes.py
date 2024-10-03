@@ -12,7 +12,10 @@ from typing import Optional
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 
-router = APIRouter()
+router = APIRouter(
+    prefix=("/api/notifications/v1"),
+    tags=["notifications"]
+)
 
 # Modelos Pydantic
 class NotificationCreateModel(BaseModel):
@@ -22,14 +25,22 @@ class NotificationCreateModel(BaseModel):
     type: str  # 'email', 'sms', 'push', 'in_app'
     link: Optional[str] = None
     
-class NotificationUpdateResponse(BaseModel):
+class NotificationUpdateModel(BaseModel):  # Este modelo solo debe tener los campos que puedes actualizar
     title: Optional[str] = None
     message: Optional[str] = None
     type: Optional[str] = None
     link: Optional[str] = None
 
+class NotificationUpdateResponse(BaseModel):
+    id: int
+    title: Optional[str] = None
+    message: Optional[str] = None
+    type: Optional[str] = None
+    link: Optional[str] = None
+    status: str  # Este campo puede ser solo para la respuesta
 
-@router.post("/notifications/")
+
+@router.post("/")
 def create_notification(
     notification_data: NotificationCreateModel,
     db: Session = Depends(get_db)
@@ -53,10 +64,10 @@ def create_notification(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.put("/notifications/{notification_id}")
+@router.put("/{notification_id}")
 def update_notifications(
     notification_id: int, 
-    notification_data: NotificationUpdateResponse, 
+    notification_data: NotificationUpdateModel,  # Cambié el modelo aquí
     db: Session = Depends(get_db)
 ):
     repo = MySqlNotificationRepository(db)
@@ -83,22 +94,24 @@ def update_notifications(
         return NotificationUpdateResponse(
             id=updated_notification.id,
             status="success",
-            message="Notification updated successfully"
+            title=updated_notification.title,
+            message=updated_notification.message,
+            type=updated_notification.type,
+            link=updated_notification.link
         )
     except Exception as e:
         # Capturamos y mostramos el error completo en la respuesta
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
-@router.delete("/notifications/{notification_id}")
+@router.delete("/{notification_id}")
 def delete_notifications(notification_id: int, db: Session = Depends(get_db)):
     repo = MySqlNotificationRepository(db)
     notification_eliminator = NotificationEliminator(repo)
     
     try:
         notification_eliminator.delete(notification_id)
-        return {"message": f"Notifications with ID {notification_id} not found"}
+        return {"message": f"Notifications with ID {notification_id} deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
