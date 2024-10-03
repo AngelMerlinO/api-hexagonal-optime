@@ -1,22 +1,22 @@
-"""create payments table
+"""Create payment table
 
-Revision ID: 6dd811ccde06
-Revises: b2bf860f9524
-Create Date: 2024-10-02 15:50:03.081654
+Revision ID: 207e717702ba
+Revises: b7d4004a8164
+Create Date: 2024-10-02 22:47:58.219837
 
 """
 from typing import Sequence, Union
-import enum
 
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision: str = '6dd811ccde06'
-down_revision: Union[str, None] = 'b2bf860f9524'
+revision: str = '207e717702ba'
+down_revision: Union[str, None] = 'b7d4004a8164'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
 def upgrade():
     op.create_table('payments',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
