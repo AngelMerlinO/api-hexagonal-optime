@@ -25,6 +25,8 @@ from src.users.domain.User import User
 from src.schedules.domain.Schedule import Schedule
 from src.schedules.domain.ScheduleItem import ScheduleItem
 from src.notifications.domain.Notification import Notification
+from src.Activities.domain.Activities import Activities
+
 
 # Establecer los metadatos de los modelos
 target_metadata = Base.metadata
