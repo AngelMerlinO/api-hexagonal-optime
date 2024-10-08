@@ -10,7 +10,7 @@ from src.users.domain.exceptions import UserNotFoundException
 from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 
 router = APIRouter(
-    prefix=("/api/payments/v1")
+    prefix=("/api/v1/payments")
 )
 
 class PaymentItemModel(BaseModel):

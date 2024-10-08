@@ -16,7 +16,7 @@ from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 
 router = APIRouter(
-    prefix="/api/act/v1",
+    prefix="/api/v1/act",
     tags=["activities"]
 )
 
