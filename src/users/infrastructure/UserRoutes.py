@@ -11,7 +11,7 @@ from fastapi import Query
 
 # Crear el router específico para usuarios
 router = APIRouter(
-    prefix=("/api/users/v1"),
+    prefix=("/api/v1/users/"),
     tags=['users']
 )
 
