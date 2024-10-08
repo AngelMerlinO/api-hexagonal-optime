@@ -14,7 +14,7 @@ from src.users.domain.exceptions import UserNotFoundException
 from src.schedules.domain.exceptions import ScheduleNotFoundException
 
 router = APIRouter(
-    prefix=("/api/schedule/v1"),
+    prefix=("/api/v1/schedules"),
     tags=["schedules"]
 )
 
