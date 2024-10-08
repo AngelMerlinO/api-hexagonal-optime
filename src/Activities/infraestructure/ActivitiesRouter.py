@@ -29,7 +29,6 @@ class ActivitiesCreate(BaseModel):
     user_id: int
     status: str
     
-    
 class ActivitiesUpdate(BaseModel):
     title: str = None
     description: str = None

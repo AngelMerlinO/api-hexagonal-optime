@@ -6,6 +6,5 @@ class UserCreator:
         self.user_repository = user_repository
 
     def create(self, username: str, email: str, password: str):
-        # Crear el usuario sin pasar el ID manualmente
         new_user = User(username=username, email=email, password=password)
         self.user_repository.save(new_user)

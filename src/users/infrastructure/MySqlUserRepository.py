@@ -1,32 +1,37 @@
-from src.users.domain.UserRepository import UserRepository
-from src.users.domain.User import User
 from sqlalchemy.orm import Session
+from src.users.domain.UserRepository import UserRepository
+from src.users.infrastructure.orm.UserModel import UserModel
+from src.users.domain.User import User
 
 class MySqlUserRepository(UserRepository):
-    def __init__(self, db_session: Session):
-        self.db_session = db_session
+    def __init__(self, db: Session):
+        self.db = db
 
     def save(self, user: User):
-        self.db_session.add(user)
-        self.db_session.commit()
-        self.db_session.refresh(user)  # Actualiza el ID del usuario después de guardarlo
-        return user
+        user_model = UserModel(username=user.username, email=user.email, password=user.password)
+        self.db.add(user_model)
+        self.db.commit()
 
     def update(self, user: User):
-        self.db_session.merge(user)  # SQLAlchemy maneja las actualizaciones
-        self.db_session.commit()
+        user_model = self.db.query(UserModel).filter(UserModel.id == user.id).first()
+        if user_model:
+            user_model.username = user.username
+            user_model.email = user.email
+            user_model.password = user.password
+            self.db.commit()
+        else:
+            raise ValueError(f"User with ID {user.id} not found")
 
     def find_by_id(self, user_id: int) -> User:
-        user = self.db_session.query(User).filter_by(id=user_id).first()
-        if not user:
-            raise Exception(f"User with id {user_id} not found")
-        return user
-    
+        user_model = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user_model:
+            raise ValueError(f"User with ID {user_id} not found")
+        return User(username=user_model.username, email=user_model.email, password=user_model.password)
+
     def delete(self, user: User):
-        if not user:
-            raise Exception(f"User with id {user.id} not found")
-        
-        self.db_session.delete(user)
-        self.db_session.commit()
-        
-        return f"User with id {user.id} eliminated successfully."
+        user_model = self.db.query(UserModel).filter(UserModel.id == user.id).first()
+        if user_model:
+            self.db.delete(user_model)
+            self.db.commit()
+        else:
+            raise ValueError(f"User with ID {user.id} not found")
