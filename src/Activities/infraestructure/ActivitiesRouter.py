@@ -11,9 +11,9 @@ from pydantic import BaseModel
 from datetime import date
 from fastapi import Query
 
-
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
+from src.Activities.domain.exceptions import InvalidActivityTypeException, InvalidActivityStatusException
 
 router = APIRouter(
     prefix="/api/v1/act",
@@ -25,61 +25,86 @@ class ActivitiesCreate(BaseModel):
     description: str
     delivery_date: date
     link_classroom: str
-    type: str
+    activity_type: str  # Cambiar 'type' a 'activity_type'
     user_id: int
     status: str
-    
+
 class ActivitiesUpdate(BaseModel):
     title: str = None
     description: str = None
     delivery_date: date = None
     link_classroom: str = None
-    type: str = None
+    activity_type: str = None  # Cambiar 'type' a 'activity_type'
     status: str = None
     
 @router.get("/{activities_id}")
 def find_by_id(activities_id: int, db: Session = Depends(get_db)):
-    repo = MySqlActivitiesRepository(db)
-    activities_finder = ActivitiesFindByID(repo)
+    # Capa de infraestructura: Repositorio que interactúa con la base de datos
+    activity_repo = MySqlActivitiesRepository(db)
+    
     try:
-        activities = activities_finder.find_by_id(activities_id)
-        if not activities:
+        # Capa de infraestructura: Buscar actividad por ID (retorna un modelo de infraestructura)
+        activity_model = activity_repo.find_by_id(activities_id)
+        if not activity_model:
             raise HTTPException(status_code=404, detail=f"Activity with ID {activities_id} not found")
         
-        # Devolvemos el objeto completo utilizando el modelo Pydantic
-        return activities
+        # Capa de presentación: Devolvemos el modelo como un diccionario o un esquema de salida
+        return {
+            "id": activity_model.id,
+            "user_id": activity_model.user_id,
+            "title": activity_model.title,
+            "description": activity_model.description,
+            "activity_type": activity_model.type.name,  # Usar el enum correctamente
+            "status": activity_model.status.name,  # Usar el enum correctamente
+            "delivery_date": activity_model.delivery_date,
+            "link_classroom": activity_model.link_classroom
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error finding activities: {str(e)}")
-
     
 @router.post("/")
 def create_activities(
     activity_data: ActivitiesCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db)  # La sesión está siendo pasada aquí
 ):
+    # Capa de infraestructura: Repositorio que interactúa con la base de datos
     activity_repo = MySqlActivitiesRepository(db)
     user_repo = MySqlUserRepository(db)
+
+    # Capa de aplicación: Servicio que maneja la creación de actividades
     activities_creator = ActivitiesCreator(activity_repo, user_repo)
+    
     try:
-        activity = activities_creator.create(
-        activity_data.title, 
-        activity_data.description, 
-        activity_data.delivery_date, 
-        activity_data.link_classroom, 
-        activity_data.user_id,  
-        activity_data.type, 
-        activity_data.status  
-    )
-        db.commit() 
-        db.refresh(activity)  
-        return {"message": "Activity created successfully", "Activity_id": activity.id}
+        # Capa de aplicación: Crear una nueva actividad (modelo de infraestructura)
+        activity_model = activities_creator.create(
+            activity_data.title, 
+            activity_data.description, 
+            activity_data.delivery_date, 
+            activity_data.link_classroom, 
+            activity_data.user_id,  
+            activity_data.activity_type, 
+            activity_data.status
+        )
+        
+        # Hacer commit y refrescar el modelo de infraestructura
+        db.commit()
+        db.refresh(activity_model)
+
+        # Devolver el modelo de infraestructura (convertido a un esquema de salida, si es necesario)
+        return {"message": "Activity created successfully", "activity_id": activity_model.id}
+    
     except UserNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except InvalidNotificationTypeException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    
+    except InvalidActivityTypeException as e:
         raise HTTPException(status_code=400, detail=str(e))
     
+    except InvalidActivityStatusException as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.put("/{activities_id}")
 def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Session = Depends(get_db)):
     repo = MySqlActivitiesRepository(db)
@@ -99,8 +124,8 @@ def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Sess
             existing_activity.delivery_date = activities.delivery_date
         if activities.link_classroom is not None:
             existing_activity.link_classroom = activities.link_classroom
-        if activities.type is not None:
-            existing_activity.type = activities.type
+        if activities.activity_type is not None:  # Cambiado a 'activity_type'
+            existing_activity.type = activities.activity_type
         if activities.status is not None:
             existing_activity.status = activities.status
 
@@ -110,7 +135,6 @@ def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Sess
         return {"message": "Activities updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.delete("/")
 def delete_activities(
