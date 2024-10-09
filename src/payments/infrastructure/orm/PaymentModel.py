@@ -17,14 +17,8 @@ class PaymentModel(Base):
     description = Column(String(255), nullable=True)
     date_created = Column(TIMESTAMP, nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(
-        TIMESTAMP,
-        nullable=False,
-        server_default=func.current_timestamp(),
-        onupdate=func.current_timestamp()
-    )
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
 
-    # Relación con UserModel, utilizando el nombre de la clase como cadena
     user = relationship('UserModel', back_populates='payments')
 
     def __repr__(self):

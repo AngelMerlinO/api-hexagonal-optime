@@ -1,16 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
-from config.database import get_db, SessionLocal  
+from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
-from src.users.domain.exceptions import UserNotFoundException
-from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 
 router = APIRouter(
-    prefix=("/api/v1/payments")
+    prefix="/api/v1/payments",
+    tags=["payments"]
 )
 
 class PaymentItemModel(BaseModel):
@@ -36,6 +35,7 @@ async def create_payment(
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
     payment_processor = PaymentProcessor(payment_repo, user_repo)
+
     try:
         result = payment_processor.create_payment(
             payment_data.user_id,
@@ -44,36 +44,26 @@ async def create_payment(
             payment_data.description
         )
         return result
-    except UserNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PaymentProcessingException as e:
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/notifications")
-async def receive_notifications(request: Request):
-    db = SessionLocal()
+async def receive_notifications(request: Request, db: Session = Depends(get_db)):
+    payment_repo = MySqlPaymentRepository(db)
+    user_repo = MySqlUserRepository(db)
+    payment_processor = PaymentProcessor(payment_repo, user_repo)
+
     try:
-        try:
-            data = await request.json()
-        except:
-            data = dict(request.query_params)
+        data = await request.json()
+        print("Notification data received:", data)  # Para depuración
 
-        print("Datos de la notificación recibidos:", data)
-
-        payment_repo = MySqlPaymentRepository(db)
-        user_repo = MySqlUserRepository(db)
-        payment_processor = PaymentProcessor(payment_repo, user_repo)
+        # Procesa la notificación
         payment = payment_processor.process_notification(data)
-        print(f"Notificación procesada. Pago actualizado: {payment}")
+        print(f"Payment {payment.payment_id} updated")
 
         return {"status": "success"}
     except Exception as e:
-        print("Error procesando la notificación:", str(e))
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-    finally:
-        db.close()
-        print("Sesión de base de datos cerrada")
-
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/retorno")
 async def payment_return(request: Request, db: Session = Depends(get_db)):
@@ -89,23 +79,11 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
     if payment_id:
         try:
             payment = payment_processor.get_payment_status(payment_id)
-            status = payment.status
-            status_detail = payment.status_detail
-
-            if status == "approved":
-                mensaje = "Tu pago ha sido aprobado."
-            elif status == "rejected":
-                mensaje = "Tu pago ha sido rechazado."
-            elif status == "in_process":
-                mensaje = "Tu pago está en proceso."
-            else:
-                mensaje = f"Estado de tu pago: {status}"
-
             return {
-                "message": mensaje,
-                "payment_id": payment_id,
-                "status": status,
-                "status_detail": status_detail
+                "message": f"Tu pago ha sido {payment.status}.",
+                "payment_id": payment.payment_id,
+                "status": payment.status,
+                "status_detail": payment.status_detail
             }
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -114,20 +92,3 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
             "message": "No se pudo obtener información del pago.",
             "status": status_param
         }
-
-@router.get("/status/{payment_id}")
-async def get_payment_status(payment_id: str, db: Session = Depends(get_db)):
-    payment_repo = MySqlPaymentRepository(db)
-    user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
-    try:
-        payment = payment_processor.get_payment_status(payment_id)
-        return {
-            "payment_id": payment.payment_id,
-            "status": payment.status,
-            "status_detail": payment.status_detail
-        }
-    except PaymentNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
