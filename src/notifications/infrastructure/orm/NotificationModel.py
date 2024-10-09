@@ -2,7 +2,18 @@ from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, TIMESTAM
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from config.database import Base
-from src.notifications.domain.Notification import NotificationType, NotificationStatus
+import enum
+
+class NotificationTypeEnum(enum.Enum):
+    email = 'email'
+    sms = 'sms'
+    push = 'push'
+    in_app = 'in-app'
+
+class NotificationStatusEnum(enum.Enum):
+    sent = 'sent'
+    pending = 'pending'
+    failed = 'failed'
 
 class NotificationModel(Base):
     __tablename__ = 'notifications'
@@ -11,14 +22,12 @@ class NotificationModel(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
-    type = Column(Enum(NotificationType), nullable=False)
-    status = Column(Enum(NotificationStatus), nullable=False, server_default='pending')
+    type = Column(Enum(NotificationTypeEnum), nullable=False)
+    status = Column(Enum(NotificationStatusEnum), nullable=False, server_default='pending')
     link = Column(String(255), nullable=True)
-    sent_at = Column(TIMESTAMP, nullable=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
 
-    # Relación con UserModel
     user = relationship('UserModel', back_populates='notifications')
 
     def __repr__(self):

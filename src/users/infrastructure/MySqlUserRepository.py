@@ -11,6 +11,10 @@ class MySqlUserRepository(UserRepository):
         user_model = UserModel(username=user.username, email=user.email, password=user.password)
         self.db.add(user_model)
         self.db.commit()
+        self.db.refresh(user_model)
+        
+        user.id = user_model.id
+        print(user_model.id, "Este es el id del usuario")
 
     def update(self, user: User):
         user_model = self.db.query(UserModel).filter(UserModel.id == user.id).first()
@@ -26,7 +30,7 @@ class MySqlUserRepository(UserRepository):
         user_model = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if not user_model:
             raise ValueError(f"User with ID {user_id} not found")
-        return User(username=user_model.username, email=user_model.email, password=user_model.password)
+        return User(id=user_model.id ,username=user_model.username, email=user_model.email, password=user_model.password)
 
     def delete(self, user: User):
         user_model = self.db.query(UserModel).filter(UserModel.id == user.id).first()

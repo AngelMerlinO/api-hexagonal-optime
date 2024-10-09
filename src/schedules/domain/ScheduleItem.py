@@ -3,7 +3,8 @@ class ScheduleItem:
                  calif_cuatrimestre: int = None, calif_holgura: int = None, 
                  calif_seriacion: int = None, lunes: list = None, 
                  martes: list = None, miercoles: list = None, 
-                 jueves: list = None, viernes: list = None):
+                 jueves: list = None, viernes: list = None, id: int = None):    
+        self.id = id
         self.nombre = nombre
         self.grupo = grupo
         self.cuatrimestre = cuatrimestre

@@ -1,5 +1,6 @@
 class Schedule:
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int, id: int = None):
+        self.id = id
         self.user_id = user_id
         self.schedule_items = []
 

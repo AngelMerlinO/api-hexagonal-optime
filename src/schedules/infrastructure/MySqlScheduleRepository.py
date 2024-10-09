@@ -13,6 +13,10 @@ class MySqlScheduleRepository(ScheduleRepository):
         # Crear un ScheduleModel a partir del objeto de dominio
         schedule_model = ScheduleModel(user_id=schedule.user_id)
         
+        self.db_session.add(schedule_model)
+        self.db_session.commit()
+        self.db_session.refresh(schedule_model)
+        
         # Agregar los ScheduleItems desde el dominio a la entidad de la base de datos
         for item in schedule.schedule_items:
             schedule_item_model = ScheduleItemModel(
@@ -32,10 +36,11 @@ class MySqlScheduleRepository(ScheduleRepository):
             schedule_model.schedule_items.append(schedule_item_model)
 
         # Guardar el ScheduleModel en la base de datos
-        self.db_session.add(schedule_model)
         self.db_session.commit()
         self.db_session.refresh(schedule_model)
-
+        
+        schedule.id = schedule_model.id
+        
         return schedule_model
 
     def find_by_user_id(self, user_id: int, skip: int = 0, limit: int = 3) -> List[Schedule]:
@@ -117,7 +122,7 @@ class MySqlScheduleRepository(ScheduleRepository):
         
         # Convertir los ScheduleItems
         for item_model in schedule_model.schedule_items:
-            schedule_item = ScheduleItem(
+            schedule_item = ScheduleItemModel(
                 nombre=item_model.nombre,
                 grupo=item_model.grupo,
                 cuatrimestre=item_model.cuatrimestre,
