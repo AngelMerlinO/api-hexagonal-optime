@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from src.messaging.domain.Message import Message
 from src.messaging.domain.MessageRepository import MessageRepository
 from src.messaging.domain.exceptions import MessageSendingException
@@ -7,68 +8,65 @@ from src.messaging.domain.exceptions import MessageSendingException
 class MessageSender:
     def __init__(self, message_repository: MessageRepository):
         self.message_repository = message_repository
-        self.access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')  # Asegúrate de que esta variable esté correctamente configurada
-        self.phone_number_id = os.getenv('WHATSAPP_PHONE_NUMBER_ID')  # Asegúrate de que esta variable esté correctamente configurada
+        self.access_token = os.getenv('WHATSAPP_ACCESS_TOKEN')  # Token de acceso almacenado en variable de entorno
+        self.phone_number_id = os.getenv('WHATSAPP_PHONE_NUMBER_ID')  # Phone Number ID almacenado en variable de entorno
         self.url = f'https://graph.facebook.com/v20.0/{self.phone_number_id}/messages'
 
-    def send_whatsapp_message(self, recipient_phone_number: str, message_type: str, message_content: str) -> Message:
+    def send_whatsapp_message(self, recipient_phone_number: str, message_content: str) -> Message:
+        # Crear el objeto de mensaje
         message = Message(
             recipient_phone_number=recipient_phone_number,
-            message_type=message_type,
+            message_type="template",  # Establecemos 'template' como tipo de mensaje
             message_content=message_content,
             status="sending"
         )
         self.message_repository.save(message)
 
         headers = {
-            'Authorization': f'Bearer {self.access_token}',  # Este token debe ser válido
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
         }
 
-        # Datos que se enviarán en la solicitud POST
+        # Cuerpo de la solicitud que será enviado a la API de Facebook
         data = {
             "messaging_product": "whatsapp",
-            "to": recipient_phone_number,  # Número de teléfono del destinatario
-            "type": "template",  # Tipo de mensaje es 'template'
+            "to": recipient_phone_number,
+            "type": "template",
             "template": {
-                "name": message_content,  # El nombre de la plantilla de mensaje
+                "name": message_content,
                 "language": {
-                    "code": "en_US"  # Idioma de la plantilla
+                    "code": "en_US"
                 }
             }
         }
 
         try:
-            # Realizar la solicitud POST
+            # Hacer la solicitud POST a la API de Facebook
             response = requests.post(self.url, headers=headers, json=data)
+            response.raise_for_status()  # Lanzar excepción si el código de respuesta no es 200-299
 
-            # Si la respuesta tiene un código de estado distinto a 200-299, generar un error
-            response.raise_for_status()
+            # Procesar la respuesta en caso de éxito
+            print("Mensaje enviado exitosamente:")
+            print(json.dumps(response.json(), indent=4))
 
-            # Imprimir la respuesta para depuración
-            print('Mensaje enviado exitosamente')
-            print(response.json())
-
-            # Actualizar el estado del mensaje
+            # Actualizar el estado del mensaje en la base de datos
             message.status = "sent"
             self.message_repository.update(message)
 
         except requests.exceptions.HTTPError as http_err:
-            # Si ocurre un error HTTP, capturarlo y registrarlo
-            error_message = f'HTTP error occurred: {http_err} - {response.text}'
-            print(f'Error al enviar el mensaje: {error_message}')
+            # Manejo de errores HTTP
+            print(f"HTTP error occurred: {http_err}")
+            if response.content:
+                print("Detalles del error:", response.content.decode())
             message.status = "failed"
-            message.error_message = error_message
             self.message_repository.update(message)
-            raise MessageSendingException(error_message)
+            raise MessageSendingException(f'HTTP error occurred: {http_err}')
 
         except Exception as err:
-            # Si ocurre un error general, capturarlo y registrarlo
-            error_message = f'Unexpected error: {err}'
-            print(f'Error inesperado: {error_message}')
+            # Manejo de errores generales
+            print(f'Error inesperado: {err}')
             message.status = "failed"
-            message.error_message = error_message
             self.message_repository.update(message)
-            raise MessageSendingException(error_message)
+            raise MessageSendingException(f'Unexpected error: {err}')
 
         return message
