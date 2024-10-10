@@ -10,7 +10,6 @@ class UserModel(Base):
     email = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
 
-    # Relación con Schedule usando el nombre de la clase como cadena
     schedules = relationship('ScheduleModel', back_populates='user')
     notifications = relationship('NotificationModel', back_populates='user')
     activities = relationship('ActivitiesModel', back_populates='user')
