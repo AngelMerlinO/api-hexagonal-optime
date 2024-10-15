@@ -14,6 +14,10 @@ class ScheduleRepository(ABC):
     @abstractmethod
     def find_by_id(self, schedule_id: int) -> Schedule:
         pass
+    
+    @abstractmethod
+    def find_by_uuid(self, schedule_uuid: str) -> Schedule:
+        pass
 
     @abstractmethod
     def delete(self, schedule: Schedule):

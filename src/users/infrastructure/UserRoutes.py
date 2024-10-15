@@ -9,13 +9,11 @@ from config.database import get_db
 from pydantic import BaseModel
 from fastapi import Query
 
-# Crear el router específico para usuarios
 router = APIRouter(
     prefix=("/api/v1/users"),
     tags=['users']
 )
 
-# Modelo Pydantic para crear y actualizar usuarios
 class UserCreate(BaseModel):
     username: str
     email: str
@@ -25,19 +23,18 @@ class UserUpdate(BaseModel):
     username: str = None
     email: str = None
     password: str = None
-    
+
 @router.get("/{user_id}")
-def find_by_id(user_id: int, db: Session = Depends(get_db)):
+def find_user_by_id(user_id: int, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
-    user_finder = UserFindById(repo)
     try:
-        user = user_finder.find_by_id(user_id)
+        user = repo.find_by_id(user_id)
         return user
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=(e))
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Error finding user")  
-    
+        raise HTTPException(status_code=400, detail="Error finding user by ID")
+
 @router.post("/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
@@ -49,25 +46,26 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{user_id}")
-def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+def update_user_by_id(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
-    user_updater = UserUpdater(repo)
     try:
-        user_updater.update(user_id, user.username, user.email, user.password)
+        repo.update_by_id(
+            id=user_id,
+            username=user.username,
+            email=user.email,
+            password=user.password
+        )
         return {"message": "User updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
-@router.delete("/")
-def delete_user(
-    user_id: int = Query(..., description="ID of the user to be deleted"),
-    db: Session = Depends(get_db)
-):
+
+@router.delete("/{user_id}")
+def delete_user_by_id(user_id: int, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
-    user_eliminator = UserEliminator(repo)
-    
     try:
-        user_eliminator.delete(user_id) 
+        repo.delete_by_id(user_id)
         return {"message": f"User with ID {user_id} eliminated successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

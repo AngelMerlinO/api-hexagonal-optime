@@ -10,6 +10,7 @@ class MySqlNotificationRepository(NotificationRepository):
 
     def save(self, notification: Notification):
         notification_model = NotificationModel(
+            uuid=notification.uuid,
             user_id=notification.user_id,
             title=notification.title,
             message=notification.message,
@@ -29,15 +30,14 @@ class MySqlNotificationRepository(NotificationRepository):
         if not notification_model:
             raise ValueError(f"Notification with ID {notification_id} not found")
         
-        # Convertir el modelo de infraestructura a objeto de dominio
         return Notification(
             id=notification_model.id,
+            uuid=notification_model.uuid,
             user_id=notification_model.user_id,
             title=notification_model.title,
             message=notification_model.message,
-            # Convertir el enum de infraestructura a dominio
-            type=NotificationType(notification_model.type.name),  # Convertir por el nombre
-            status=NotificationStatus(notification_model.status.name),  # Convertir por el nombre
+            type=NotificationType(notification_model.type.name), 
+            status=NotificationStatus(notification_model.status.name),
             link=notification_model.link
         )
 
@@ -47,6 +47,7 @@ class MySqlNotificationRepository(NotificationRepository):
         notifications = [
             Notification(
                 id=notification_model.id,
+                uuid=notification_model.uuid,
                 user_id=notification_model.user_id,
                 title=notification_model.title,
                 message=notification_model.message,

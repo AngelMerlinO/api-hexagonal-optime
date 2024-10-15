@@ -4,20 +4,26 @@ from src.schedules.domain.ScheduleRepository import ScheduleRepository
 from src.schedules.domain.Schedule import Schedule
 from src.schedules.infrastructure.orm.ScheduleModel import ScheduleModel
 from src.schedules.infrastructure.orm.ScheduleItemModel import ScheduleItemModel
+from src.schedules.domain.ScheduleItem import ScheduleItem
+
+import uuid
 
 class MySqlScheduleRepository(ScheduleRepository):
     def __init__(self, db_session: Session):
         self.db_session = db_session
 
     def save(self, schedule: Schedule):
-        # Crear un ScheduleModel a partir del objeto de dominio
-        schedule_model = ScheduleModel(user_id=schedule.user_id)
+        schedule_uuid = schedule.uuid or str(uuid.uuid4()) 
+
+        schedule_model = ScheduleModel(
+            user_id=schedule.user_id,
+            uuid=schedule_uuid
+        )
         
         self.db_session.add(schedule_model)
         self.db_session.commit()
         self.db_session.refresh(schedule_model)
         
-        # Agregar los ScheduleItems desde el dominio a la entidad de la base de datos
         for item in schedule.schedule_items:
             schedule_item_model = ScheduleItemModel(
                 schedule_id=schedule_model.id,
@@ -33,52 +39,55 @@ class MySqlScheduleRepository(ScheduleRepository):
                 jueves=item.jueves,
                 viernes=item.viernes
             )
-            schedule_model.schedule_items.append(schedule_item_model)
+            self.db_session.add(schedule_item_model)
 
-        # Guardar el ScheduleModel en la base de datos
         self.db_session.commit()
         self.db_session.refresh(schedule_model)
         
         schedule.id = schedule_model.id
         
         return schedule_model
+    
+    def find_by_uuid(self, uuid: str) -> Schedule:
+        schedule_model = self.db_session.query(ScheduleModel).filter(ScheduleModel.uuid == uuid).first()
+        if not schedule_model:
+            raise ValueError(f"Schedule with UUID {uuid} not found")
+        return self._to_domain(schedule_model)
 
     def find_by_user_id(self, user_id: int, skip: int = 0, limit: int = 3) -> List[Schedule]:
         schedules = self.db_session.query(ScheduleModel).filter_by(user_id=user_id).offset(skip).limit(limit).all()
         if not schedules:
             raise ValueError(f"No schedules found for user_id {user_id}")
         
-        # Convertir ScheduleModel a objetos de dominio
-        domain_schedules = []
-        for schedule_model in schedules:
-            schedule = self._to_domain(schedule_model)
-            domain_schedules.append(schedule)
-        
-        return domain_schedules
+        return [self._to_domain(schedule) for schedule in schedules]
 
     def find_by_id(self, schedule_id: int) -> Schedule:
         schedule_model = self.db_session.query(ScheduleModel).filter_by(id=schedule_id).first()
         if not schedule_model:
             raise ValueError(f"Schedule with ID {schedule_id} not found")
-        
-        # Convertir ScheduleModel a objeto de dominio
         return self._to_domain(schedule_model)
 
-    def delete(self, schedule: Schedule):
-        schedule_model = self.db_session.query(ScheduleModel).filter_by(id=schedule.id).first()
-        if schedule_model:
+
+    def delete(self, schedule_id: int):
+        try:
+            schedule_model = self.db_session.query(ScheduleModel).filter_by(id=schedule_id).first()
+            if not schedule_model:
+                raise ValueError(f"Schedule with ID {schedule_id} not found")
+
             self.db_session.delete(schedule_model)
             self.db_session.commit()
+        except Exception as e:
+            self.db_session.rollback()
+            raise ValueError(f"Error deleting schedule: {str(e)}")
+
 
     def update(self, schedule: Schedule):
         schedule_model = self.db_session.query(ScheduleModel).filter_by(id=schedule.id).first()
         if not schedule_model:
             raise ValueError(f"Schedule with ID {schedule.id} not found")
         
-        # Actualizar los datos del ScheduleModel con los del objeto de dominio
         schedule_model.user_id = schedule.user_id
 
-        # Actualizar los ScheduleItems
         for item in schedule.schedule_items:
             schedule_item_model = self.db_session.query(ScheduleItemModel).filter_by(id=item.id).first()
             if schedule_item_model:
@@ -94,7 +103,6 @@ class MySqlScheduleRepository(ScheduleRepository):
                 schedule_item_model.jueves = item.jueves
                 schedule_item_model.viernes = item.viernes
             else:
-                # Crear y agregar un nuevo ScheduleItemModel si no existe
                 new_item_model = ScheduleItemModel(
                     schedule_id=schedule_model.id,
                     nombre=item.nombre,
@@ -109,20 +117,21 @@ class MySqlScheduleRepository(ScheduleRepository):
                     jueves=item.jueves,
                     viernes=item.viernes
                 )
-                schedule_model.schedule_items.append(new_item_model)
-        
+                self.db_session.add(new_item_model)
+
         self.db_session.commit()
         self.db_session.refresh(schedule_model)
         return schedule_model
 
-    # Método privado para convertir ScheduleModel a un objeto de dominio Schedule
     def _to_domain(self, schedule_model: ScheduleModel) -> Schedule:
-        schedule = Schedule(user_id=schedule_model.user_id)
-        schedule.id = schedule_model.id
-        
-        # Convertir los ScheduleItems
+        schedule = Schedule(
+            user_id=schedule_model.user_id,
+            id=schedule_model.id,
+            uuid=schedule_model.uuid
+        )
+
         for item_model in schedule_model.schedule_items:
-            schedule_item = ScheduleItemModel(
+            schedule_item = ScheduleItem(
                 nombre=item_model.nombre,
                 grupo=item_model.grupo,
                 cuatrimestre=item_model.cuatrimestre,
@@ -136,5 +145,5 @@ class MySqlScheduleRepository(ScheduleRepository):
                 viernes=item_model.viernes
             )
             schedule.schedule_items.append(schedule_item)
-        
+
         return schedule

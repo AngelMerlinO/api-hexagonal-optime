@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.mysql import JSON
+import uuid
 
 
 
@@ -19,11 +20,17 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def generate_uuid():
+    """Helper function to generate a UUIDs for seed data"""
+    return str(uuid.uuid4)
+
 def upgrade():
+    
     
     op.create_table(
         'schedules',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column('uuid', sa.String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4())),
         sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), nullable=False)
     )
 
@@ -31,6 +38,7 @@ def upgrade():
     op.create_table(
         'schedule_items',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column("uuid", sa.String(36)),
         sa.Column('schedule_id', sa.Integer, sa.ForeignKey('schedules.id', ondelete='CASCADE'), nullable=False),
         sa.Column('nombre', sa.String(255), nullable=False),
         sa.Column('grupo', sa.String(50), nullable=True),
@@ -49,6 +57,7 @@ def upgrade():
     schedules_table = sa.table(
         'schedules',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
     )
 
@@ -56,10 +65,12 @@ def upgrade():
     seed_schedules = [
         {
             'id': 1,  
+            'uuid': generate_uuid(),
             'user_id': 1,  
         },
         {
             'id': 2,
+            'uuid': generate_uuid(),
             'user_id': 2,  
         },
     ]
@@ -71,6 +82,7 @@ def upgrade():
     schedule_items_table = sa.table(
         'schedule_items',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('schedule_id', sa.Integer),
         sa.column('nombre', sa.String(255)),
         sa.column('grupo', sa.String(50)),
@@ -89,6 +101,7 @@ def upgrade():
     seed_schedule_items = [
         {
             'id': 1,
+            'uuid': generate_uuid(),
             'schedule_id': 1,
             'nombre': 'Matemáticas',
             'grupo': 'A',
@@ -104,6 +117,7 @@ def upgrade():
         },
         {
             'id': 2,
+            'uuid': generate_uuid(),
             'schedule_id': 1,
             'nombre': 'Física',
             'grupo': 'B',
@@ -119,6 +133,7 @@ def upgrade():
         },
         {
             'id': 3,
+            'uuid': generate_uuid(),
             'schedule_id': 2,
             'nombre': 'Química',
             'grupo': 'A',
@@ -143,6 +158,7 @@ def downgrade():
     schedule_items_table = sa.table(
         'schedule_items',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('schedule_id', sa.Integer),
         sa.column('nombre', sa.String(255)),
         sa.column('grupo', sa.String(50)),
@@ -181,6 +197,7 @@ def downgrade():
     schedules_table = sa.table(
         'schedules',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
     )
 

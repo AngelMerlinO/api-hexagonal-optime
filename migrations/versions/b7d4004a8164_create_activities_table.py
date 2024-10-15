@@ -9,17 +9,25 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+import uuid
 from sqlalchemy.dialects import mysql
+
 
 revision: str = 'b7d4004a8164'
 down_revision: Union[str, None] = 'b2bf860f9524'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+def generate_uuid():
+    """Helper function to generate a UUIDs for seed data"""
+    return str(uuid.uuid4())
 
 def upgrade() -> None:
+    
+    
     op.create_table('activities',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("uuid", sa.String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4())),
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('title', sa.String(length=255), nullable=False),
         sa.Column('description', sa.Text(), nullable=False),
@@ -38,6 +46,7 @@ def upgrade() -> None:
     activities_table = sa.table(
         'activities',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
         sa.column('title', sa.String(length=255)),
         sa.column('description', sa.Text),
@@ -51,6 +60,7 @@ def upgrade() -> None:
 
     seed_activities = [
         {
+            'uuid': generate_uuid(),
             'user_id': 1,  
             'title': 'Examen Final de Matemáticas',
             'description': 'Examen final para el curso de Matemáticas II.',
@@ -60,6 +70,7 @@ def upgrade() -> None:
             'link_classroom': 'https://classroom.example.com/exam-matematicas-final',
         },
         {
+            'uuid': generate_uuid(),
             'user_id': 2,  
             'title': 'Proyecto de Física Aplicada',
             'description': 'Desarrollo de un proyecto de Física aplicada sobre movimiento rectilíneo.',
@@ -69,6 +80,7 @@ def upgrade() -> None:
             'link_classroom': 'https://classroom.example.com/proyecto-fisica-aplicada',
         },
         {
+            'uuid': generate_uuid(),
             'user_id': 3, 
             'title': 'Quiz de Química Orgánica',
             'description': 'Quiz sobre reacciones de química orgánica.',
@@ -78,6 +90,7 @@ def upgrade() -> None:
             'link_classroom': 'https://classroom.example.com/quiz-quimica-organica',
         },
         {
+            'uuid': generate_uuid(),
             'user_id': 1,
             'title': 'Asignación de Laboratorio de Biología',
             'description': 'Preparación para el laboratorio de biología sobre genética.',
@@ -95,6 +108,7 @@ def downgrade() -> None:
     activities_table = sa.table(
         'activities',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
         sa.column('title', sa.String(length=255)),
         sa.column('description', sa.Text),

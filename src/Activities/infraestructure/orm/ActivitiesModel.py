@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from config.database import Base
 import enum
+import uuid
 
 
 class ActivityTypeEnum(enum.Enum):
@@ -18,9 +19,10 @@ class ActivityStatusEnum(enum.Enum):
     overdue = 'overdue'
 
 class ActivitiesModel(Base):
-    __tablename__ = 'activities'  # Name of the table in the database
+    __tablename__ = 'activities'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)

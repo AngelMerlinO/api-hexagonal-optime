@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from config.database import Base
 import enum
+import uuid
 
 class NotificationTypeEnum(enum.Enum):
     email = 'email'
@@ -19,6 +20,7 @@ class NotificationModel(Base):
     __tablename__ = 'notifications'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)

@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
+import uuid
 
 
 revision: str = '207e717702ba'
@@ -17,10 +18,15 @@ down_revision: Union[str, None] = 'b7d4004a8164'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+def generate_uuid():
+    """Helper function to generate a UUIDs for seed data"""
+    return str(uuid.uuid4)
+
 def upgrade():
     
     op.create_table('payments',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4())),
         sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id'), nullable=False),
         sa.Column('preference_id', sa.String(length=255), nullable=False),
         sa.Column('payment_id', sa.String(length=255), nullable=True),
@@ -41,6 +47,7 @@ def upgrade():
     payments_table = sa.table(
         'payments',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
         sa.column('preference_id', sa.String(length=255)),
         sa.column('payment_id', sa.String(length=255)),
@@ -57,6 +64,7 @@ def upgrade():
     
     seed_payments = [
         {
+            'uuid': generate_uuid(),
             'user_id': 1,  
             'preference_id': 'pref_12345',
             'payment_id': 'pay_67890',
@@ -68,6 +76,7 @@ def upgrade():
             'date_created': '2024-10-02 10:00:00',
         },
         {
+            'uuid': generate_uuid(),
             'user_id': 2,  
             'preference_id': 'pref_54321',
             'payment_id': 'pay_09876',
@@ -79,6 +88,7 @@ def upgrade():
             'date_created': '2024-10-03 12:30:00',
         },
         {
+            'uuid': generate_uuid(),
             'user_id': 1,
             'preference_id': 'pref_11223',
             'payment_id': None,  
@@ -100,6 +110,7 @@ def downgrade():
     payments_table = sa.table(
         'payments',
         sa.column('id', sa.Integer),
+        sa.column('uuid', sa.String(36)),
         sa.column('user_id', sa.Integer),
         sa.column('preference_id', sa.String(length=255)),
         sa.column('payment_id', sa.String(length=255)),

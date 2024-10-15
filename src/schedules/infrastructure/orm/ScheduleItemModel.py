@@ -2,11 +2,14 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import JSON
 from config.database import Base
+import uuid
+
 
 class ScheduleItemModel(Base):
     __tablename__ = 'schedule_items'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
     schedule_id = Column(Integer, ForeignKey('schedules.id', ondelete='CASCADE'), nullable=False)
     nombre = Column(String(255), nullable=False)
     grupo = Column(String(50), nullable=True)
@@ -20,7 +23,6 @@ class ScheduleItemModel(Base):
     jueves = Column(JSON, nullable=True)
     viernes = Column(JSON, nullable=True)
 
-    # Relación con ScheduleModel
     schedule = relationship('ScheduleModel', back_populates='schedule_items')
 
     def __repr__(self):

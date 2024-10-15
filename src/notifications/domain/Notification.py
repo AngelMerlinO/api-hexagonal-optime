@@ -12,8 +12,9 @@ class NotificationStatus(enum.Enum):
     failed = 'failed'
 
 class Notification:
-    def __init__(self, user_id, title, message, type: NotificationType, status: NotificationStatus = NotificationStatus.pending, link=None, id=None):
+    def __init__(self, user_id, title, message, type: NotificationType, status: NotificationStatus = NotificationStatus.pending, link=None, id=None, uuid=None):
         self.id = id
+        self.uuid=uuid
         self.user_id = user_id
         self.title = title
         self.message = message

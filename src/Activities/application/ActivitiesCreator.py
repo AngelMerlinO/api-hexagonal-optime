@@ -1,4 +1,5 @@
 from datetime import date
+import uuid
 from src.Activities.domain.ActivitiesRepository import ActivitiesRepository
 from src.Activities.domain.Activities import Activities, ActivityType, ActivityStatus
 from src.users.domain.UserRepository import UserRepository
@@ -31,8 +32,8 @@ class ActivitiesCreator:
         if status not in ActivityStatus.__members__:
             raise InvalidActivityStatusException(f"Invalid Activity status {status}")
         
-        # Creando el modelo de infraestructura
         new_activity_model = ActivitiesModel(
+            uuid=str(uuid.uuid4()),
             title=title,
             description=description,
             delivery_date=delivery_date,
@@ -42,7 +43,6 @@ class ActivitiesCreator:
             status=ActivityStatusEnum[status]
         )
         
-        # Guardar el modelo usando el repositorio
         self.activities_repository.save(new_activity_model)
         
-        return new_activity_model  # Asegúrate de devolver el modelo de infraestructura
+        return new_activity_model 
