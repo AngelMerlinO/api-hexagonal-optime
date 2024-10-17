@@ -9,7 +9,6 @@ from typing import Sequence, Union
  
 from alembic import op
 import sqlalchemy as sa
-import uuid
  
  
 revision: str = 'd4661526e5ea'
@@ -18,16 +17,12 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
  
  
-def generate_uuid():
-    """Helper function to generate a UUIDs for seed data"""
-    return str(uuid.uuid4())
  
 def upgrade():
     
     
     op.create_table('messages',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('uuid', sa.String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4())),
         sa.Column('recipient_phone_number', sa.String(length=20), nullable=False),
         sa.Column('message_type', sa.String(length=50), nullable=False),
         sa.Column('message_content', sa.Text(), nullable=False),
@@ -50,7 +45,6 @@ def upgrade():
  
     seed_data = [
         {
-            'uuid': generate_uuid(),
             'recipient_phone_number': '529515271070',
             'message_type': 'template',
             'message_content': 'hello_world',
@@ -58,7 +52,6 @@ def upgrade():
             'error_message': None,
         },
         {
-            'uuid': generate_uuid(),
             'recipient_phone_number': '529515271071',
             'message_type': 'text',
             'message_content': 'Hola, este es un mensaje de prueba.',
@@ -66,7 +59,6 @@ def upgrade():
             'error_message': None,
         },
         {
-            'uuid': generate_uuid(),
             'recipient_phone_number': '529515271072',
             'message_type': 'template',
             'message_content': 'invalid_template',
@@ -74,7 +66,6 @@ def upgrade():
             'error_message': 'Invalid template name',
         },
         {
-            'uuid': generate_uuid(),
             'recipient_phone_number': '529515271073',
             'message_type': 'text',
             'message_content': 'Este mensaje está pendiente de envío.',
@@ -90,7 +81,6 @@ def downgrade():
     
     messages_table = sa.table(
         'messages',
-        sa.column('uuid', sa.String(36)),
         sa.column('recipient_phone_number', sa.String(length=20)),
         sa.column('message_type', sa.String(length=50)),
         sa.column('message_content', sa.Text()),

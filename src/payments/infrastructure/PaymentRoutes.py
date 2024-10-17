@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
+from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
 from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
@@ -34,7 +35,8 @@ async def create_payment(
 ):
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
+    mercado_pago_service = MercadoPagoService()  # Crear instancia del servicio de MercadoPago
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
     try:
         result = payment_processor.create_payment(
@@ -51,16 +53,13 @@ async def create_payment(
 async def receive_notifications(request: Request, db: Session = Depends(get_db)):
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
+    mercado_pago_service = MercadoPagoService()
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
     try:
         data = await request.json()
-        print("Notification data received:", data)  # Para depuración
-
-        # Procesa la notificación
+        print("Notification data received:", data)
         payment = payment_processor.process_notification(data)
-        print(f"Payment {payment.payment_id} updated")
-
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -74,7 +73,8 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
 
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
+    mercado_pago_service = MercadoPagoService()
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
     if payment_id:
         try:
