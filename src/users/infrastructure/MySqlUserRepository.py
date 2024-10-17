@@ -12,6 +12,7 @@ class MySqlUserRepository(UserRepository):
     def save(self, user: User):
         user_model = UserModel(
             uuid=user.uuid,
+            contact_id=user.contact_id,
             username=user.username,
             email=user.email,
             password=user.password

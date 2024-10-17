@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def generate_uuid():
     """Helper function to generate a UUIDs for seed data"""
-    return str(uuid.uuid4)
+    return str(uuid.uuid4())
 
 def upgrade():
     
@@ -38,7 +38,7 @@ def upgrade():
     op.create_table(
         'schedule_items',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column("uuid", sa.String(36)),
+        sa.Column("uuid", sa.String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4())),
         sa.Column('schedule_id', sa.Integer, sa.ForeignKey('schedules.id', ondelete='CASCADE'), nullable=False),
         sa.Column('nombre', sa.String(255), nullable=False),
         sa.Column('grupo', sa.String(50), nullable=True),

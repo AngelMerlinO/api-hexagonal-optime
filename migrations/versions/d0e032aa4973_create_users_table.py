@@ -33,7 +33,8 @@ def upgrade() -> None:
         sa.Column('password', sa.String(length=255), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('username'),
-        sa.UniqueConstraint('email')
+        sa.UniqueConstraint('email'),
+        sa.UniqueConstraint('uuid'),
     )
     
     users_table = sa.table(
@@ -49,19 +50,19 @@ def upgrade() -> None:
             'uuid': generate_uuid(),
             'username': 'john_doe',
             'email': 'john.doe@example.com',
-            'password': '$2b$12$KIXQ4.LTn4bF.4ZjX9jEKe/Ju5X1LqHc6HtLYPghW6oRzZVbG1F5O',  # Hasheada
+            'password': '$2b$12$KIXQ4.LTn4bF.4ZjX9jEKe/Ju5X1LqHc6HtLYPghW6oRzZVbG1F5O',  
         },
         {
             'uuid': generate_uuid(),
             'username': 'jane_smith',
             'email': 'jane.smith@example.com',
-            'password': '$2b$12$A3Wc9pTQZL7P8C1LxQjKkOl8vG6sF7DgH8uI9J0K1M2N3O4P5Q6R7',  # Hasheada
+            'password': '$2b$12$A3Wc9pTQZL7P8C1LxQjKkOl8vG6sF7DgH8uI9J0K1M2N3O4P5Q6R7',  
         },
         {
             'uuid': generate_uuid(),
             'username': 'alice_jones',
             'email': 'alice.jones@example.com',
-            'password': '$2b$12$B1C2D3E4F5G6H7I8J9K0L1M2N3O4P5Q6R7S8T9U0V1W2X3Y4Z5A6B',  # Hasheada
+            'password': '$2b$12$B1C2D3E4F5G6H7I8J9K0L1M2N3O4P5Q6R7S8T9U0V1W2X3Y4Z5A6B',  
         },
     ]
 

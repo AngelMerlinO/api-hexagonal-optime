@@ -35,7 +35,6 @@ def upgrade():
 
     messages_table = sa.table(
         'messages',
-        sa.column('uuid', sa.String(36)),
         sa.column('recipient_phone_number', sa.String(length=20)),
         sa.column('message_type', sa.String(length=50)),
         sa.column('message_content', sa.Text()),

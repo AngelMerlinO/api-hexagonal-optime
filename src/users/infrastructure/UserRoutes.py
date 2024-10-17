@@ -5,6 +5,7 @@ from src.users.application.UserUpdater import UserUpdater
 from src.users.application.UserEliminator import UserEliminator
 from src.users.application.UserFindById import UserFindById
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
+from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
 from config.database import get_db
 from pydantic import BaseModel
 from fastapi import Query
@@ -15,6 +16,7 @@ router = APIRouter(
 )
 
 class UserCreate(BaseModel):
+    contact_id: int
     username: str
     email: str
     password: str
@@ -38,9 +40,10 @@ def find_user_by_id(user_id: int, db: Session = Depends(get_db)):
 @router.post("/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
-    user_creator = UserCreator(repo)
+    contact_repo = MySqlContactRepository(db)
+    user_creator = UserCreator(repo, contact_repo)
     try:
-        user_creator.create(user.username, user.email, user.password)
+        user_creator.create(user.contact_id,user.username, user.email, user.password)
         return {"message": "User created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
