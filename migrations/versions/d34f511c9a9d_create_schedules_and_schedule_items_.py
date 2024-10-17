@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def generate_uuid():
     """Helper function to generate a UUIDs for seed data"""
-    return str(uuid.uuid4)
+    return str(uuid.uuid4())
 
 def upgrade():
     
