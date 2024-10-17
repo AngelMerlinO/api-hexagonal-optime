@@ -8,12 +8,14 @@ from config.database import get_db
 from src.messaging.domain.exceptions import MessageSendingException
 from datetime import datetime
 
-
 router = APIRouter()
 
-class MessageCreateModel(BaseModel):
+class PaymentConfirmationModel(BaseModel):
     recipient_phone_number: str = Field(..., example="529515271070")
-    message_content: str = Field(..., example="hello_world")
+    status: str = Field(..., example="aprobado")
+    amount: str = Field(..., example="1000")
+    currency: str = Field(..., example="MXN")
+    payment_id: str = Field(..., example="12345")
 
 class MessageResponseModel(BaseModel):
     id: int
@@ -26,18 +28,20 @@ class MessageResponseModel(BaseModel):
     class Config:
         from_attributes = True  # Habilitar para que funcione con ORMs
 
-
-@router.post("/api/v1/send-message", response_model=MessageResponseModel)
-def send_message(message_data: MessageCreateModel, db: Session = Depends(get_db)):
+@router.post("/api/v1/send-payment-confirmation", response_model=MessageResponseModel)
+def send_payment_confirmation(message_data: PaymentConfirmationModel, db: Session = Depends(get_db)):
     message_repo = MySqlMessageRepository(db)
     whatsapp_service = WhatsAppService()  # Crear instancia del servicio
     message_sender = MessageSender(message_repo, whatsapp_service)
 
     try:
-        # Enviar el mensaje y guardarlo en la base de datos
-        saved_message = message_sender.send_whatsapp_message(
+        # Enviar la confirmación de pago
+        saved_message = message_sender.send_payment_confirmation(
             recipient_phone_number=message_data.recipient_phone_number,
-            message_content=message_data.message_content
+            status=message_data.status,
+            amount=message_data.amount,
+            currency=message_data.currency,
+            payment_id=message_data.payment_id
         )
 
         # Obtener el mensaje desde la base de datos y devolverlo

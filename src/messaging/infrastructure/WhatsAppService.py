@@ -7,24 +7,33 @@ class WhatsAppService:
         self.phone_number_id = os.getenv('WHATSAPP_PHONE_NUMBER_ID')  # Phone number ID from environment variable
         self.url = f'https://graph.facebook.com/v20.0/{self.phone_number_id}/messages'
 
-    def send_message(self, recipient_phone_number: str, message_content: str) -> dict:
+    def send_message(self, recipient_phone_number: str, template_name: str, parameters: list) -> dict:
         """
-        Enviar un mensaje a través de la API de WhatsApp de Facebook.
+        Enviar un mensaje a través de la API de WhatsApp de Facebook con plantilla.
         """
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
 
+        # Construir el cuerpo de la solicitud para enviar un mensaje con plantilla
         data = {
             "messaging_product": "whatsapp",
             "to": recipient_phone_number,
             "type": "template",
             "template": {
-                "name": message_content,
+                "name": template_name,
                 "language": {
-                    "code": "en_US"
-                }
+                    "code": "es"
+                },
+                "components": [
+                    {
+                        "type": "body",
+                        "parameters": [
+                            {"type": "text", "text": param} for param in parameters
+                        ]
+                    }
+                ]
             }
         }
 
