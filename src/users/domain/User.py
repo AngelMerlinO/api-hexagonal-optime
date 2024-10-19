@@ -1,23 +1,8 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from config.database import Base
-
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(100), nullable=False)
-    email = Column(String(100), nullable=False)
-    password = Column(String(255), nullable=False)
-
-    # Relación con Schedule
-    schedules = relationship('Schedule', back_populates='user', cascade="all, delete")
-    notifications = relationship('Notification', back_populates='user', cascade="all, delete")
-    activities = relationship('Activities', back_populates='user', cascade="all, delete")     
-    payments = relationship('Payment', back_populates='user', cascade="all, delete")
-
-
-    def __init__(self, username: str, email: str, password: str):
+class User:
+    def __init__(self,contact_id: int, username: str, email: str, password: str, id: int = None, uuid: str = None):
+        self.id = id
+        self.uuid = uuid
+        self.contact_id = contact_id
         self.username = username
         self.email = email
         self.password = password
