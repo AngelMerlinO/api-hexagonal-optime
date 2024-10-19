@@ -10,24 +10,20 @@ class ScheduleUpdater:
         self.schedule_repository = schedule_repository
         self.user_repository = user_repository
 
-    def update(self, schedule_id: int, user_id: int, items: List[Dict]):
-        # Verificar si el usuario existe
+    def update(self, schedule_uuid: str, user_id: int, items: List[Dict]):
         user = self.user_repository.find_by_id(user_id)
         if not user:
             raise UserNotFoundException(f"User with id {user_id} does not exist")
 
-        # Verificar si el schedule existe y pertenece al usuario
-        schedule = self.schedule_repository.find_by_id(schedule_id)
+        schedule = self.schedule_repository.find_by_uuid(schedule_uuid)
         if not schedule:
-            raise ScheduleNotFoundException(f"Schedule with id {schedule_id} does not exist")
+            raise ScheduleNotFoundException(f"Schedule with uuid {schedule_uuid} does not exist")
 
-        if schedule.user_id != user_id:
+        if schedule.user_id != user.id:
             raise PermissionError("User does not have permission to update this schedule")
 
-        # Limpiar los items existentes
         schedule.schedule_items.clear()
 
-        # Agregar los nuevos items
         for item_data in items:
             schedule_item = ScheduleItem(
                 nombre=item_data.get('nombre'),

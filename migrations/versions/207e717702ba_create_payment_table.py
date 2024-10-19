@@ -17,6 +17,8 @@ down_revision: Union[str, None] = 'b7d4004a8164'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+
+
 def upgrade():
     
     op.create_table('payments',

@@ -1,21 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import List
-from .Activities import Activities
+from src.Activities.domain.Activities import Activities
 
 class ActivitiesRepository(ABC):
     @abstractmethod
-    def save(self, activities: Activities):
-        """Guarda ua actividad en el repositorio"""
+    def save(self, activity: Activities):
         pass
     
     @abstractmethod
-    def update(self, activities: Activities):
-        """Actualiza los datos de la actividad en el repositorio"""
+    def update(self, activity: Activities):
         pass
     
     @abstractmethod
-    def find_by_id(self, activities_id: int) -> Activities:
-        """Encuentra una actividad por ID"""
+    def find_by_id(self, activity_id: int) -> Activities:
         pass
     
     @abstractmethod
@@ -23,7 +20,5 @@ class ActivitiesRepository(ABC):
         pass
     
     @abstractmethod
-    def delete(self, activities: Activities):
-        """Elimina una actividad mediante el ID"""
+    def delete(self, activity: Activities):
         pass
-    

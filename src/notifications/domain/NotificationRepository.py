@@ -1,5 +1,3 @@
-# src/notifications/domain/NotificationRepository.py
-
 from abc import ABC, abstractmethod
 from typing import List
 from .Notification import Notification

@@ -1,20 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional
 from sqlalchemy.orm import Session
 from src.messaging.application.MessageSender import MessageSender
 from src.messaging.infrastructure.MySqlMessageRepository import MySqlMessageRepository
+from src.messaging.infrastructure.WhatsAppService import WhatsAppService  # Importamos el servicio
 from config.database import get_db
 from src.messaging.domain.exceptions import MessageSendingException
-from datetime import datetime  # Importar datetime
+from datetime import datetime
 
 router = APIRouter()
 
-
-class MessageCreateModel(BaseModel):
+class PaymentConfirmationModel(BaseModel):
     recipient_phone_number: str = Field(..., example="529515271070")
-    message_type: str = Field(..., example="template")  # e.g., "template", "text"
-    message_content: str = Field(..., example="hello_world")  # Nombre de la plantilla o contenido del mensaje
+    status: str = Field(..., example="aprobado")
+    amount: str = Field(..., example="1000")
+    currency: str = Field(..., example="MXN")
+    payment_id: str = Field(..., example="12345")
 
 class MessageResponseModel(BaseModel):
     id: int
@@ -22,28 +23,32 @@ class MessageResponseModel(BaseModel):
     message_type: str
     message_content: str
     status: str
-    error_message: Optional[str] = None
-    date_created: datetime  # Cambiar de str a datetime
-    updated_at: datetime    # Cambiar de str a datetime
+    updated_at: datetime
 
     class Config:
-        orm_mode = True  # Habilitar orm_mode
+        from_attributes = True  # Habilitar para que funcione con ORMs
 
-
-@router.post("/api/v1/send-message", response_model=MessageResponseModel)
-def send_message(message_data: MessageCreateModel, db: Session = Depends(get_db)):
+@router.post("/api/v1/send-payment-confirmation", response_model=MessageResponseModel)
+def send_payment_confirmation(message_data: PaymentConfirmationModel, db: Session = Depends(get_db)):
     message_repo = MySqlMessageRepository(db)
-    message_sender = MessageSender(message_repo)
+    whatsapp_service = WhatsAppService()  # Crear instancia del servicio
+    message_sender = MessageSender(message_repo, whatsapp_service)
 
     try:
-        message = message_sender.send_whatsapp_message(
+        # Enviar la confirmación de pago
+        saved_message = message_sender.send_payment_confirmation(
             recipient_phone_number=message_data.recipient_phone_number,
-            message_type=message_data.message_type,
-            message_content=message_data.message_content
+            status=message_data.status,
+            amount=message_data.amount,
+            currency=message_data.currency,
+            payment_id=message_data.payment_id
         )
-        return message
+
+        # Obtener el mensaje desde la base de datos y devolverlo
+        message_from_db = message_repo.find_by_id(saved_message.id)
+        return message_from_db
+
     except MessageSendingException as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
