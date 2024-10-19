@@ -72,6 +72,7 @@ class PaymentProcessor:
             payment.status = payment_data.get("status")
             payment.status_detail = payment_data.get("status_detail")
             payment.date_created = payment_data.get("date_created")
+            payment.currency_id = payment_data.get("currency_id")
 
             self.payment_repository.update(payment)
             return payment

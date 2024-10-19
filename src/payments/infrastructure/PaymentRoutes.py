@@ -4,6 +4,9 @@ from src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
+from src.messaging.application.MessageSender import MessageSender  # Asegúrate de importar MessageSender correctamente
+from src.messaging.infrastructure.MySqlMessageRepository import MySqlMessageRepository
+from src.messaging.infrastructure.WhatsAppService import WhatsAppService  # Asegúrate de importar WhatsAppService correctamente
 from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
@@ -35,7 +38,7 @@ async def create_payment(
 ):
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    mercado_pago_service = MercadoPagoService()  # Crear instancia del servicio de MercadoPago
+    mercado_pago_service = MercadoPagoService()
     payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
     try:
@@ -56,12 +59,40 @@ async def receive_notifications(request: Request, db: Session = Depends(get_db))
     mercado_pago_service = MercadoPagoService()
     payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
+    # Repositorio y servicio de mensajería
+    message_repo = MySqlMessageRepository(db)
+    whatsapp_service = WhatsAppService()  # Crear instancia del servicio de WhatsApp
+    message_sender = MessageSender(message_repo, whatsapp_service)
+
     try:
+        # Obtener la notificación de Mercado Pago
         data = await request.json()
-        print("Notification data received:", data)
+        print(f"Notification data received: {data}")
+
+        # Procesar la notificación de pago
         payment = payment_processor.process_notification(data)
-        return {"status": "success"}
+        
+        # Información del destinatario y contenido del mensaje
+        recipient_phone_number = "529515271070"  # Cambia esto por el número del destinatario si es necesario
+        status = payment.status
+        amount = f"{payment.amount}"
+        currency = payment.currency_id
+        payment_id = payment.payment_id
+
+        # Llamamos al servicio de mensajería para enviar el mensaje de confirmación de pago
+        print(f"Sending WhatsApp message to {recipient_phone_number}")
+        message = message_sender.send_payment_confirmation(
+            recipient_phone_number=recipient_phone_number,
+            status=status,
+            amount=amount,
+            currency=currency,
+            payment_id=payment_id
+        )
+        print(f"WhatsApp message sent successfully: {message}")
+
+        return {"status": "success", "message_id": message.id}
     except Exception as e:
+        print(f"Error processing notification: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/retorno")
