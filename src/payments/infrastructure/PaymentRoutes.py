@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
-from config.database import get_db, SessionLocal  
+from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
+from src.messaging.application.MessageSender import MessageSender  # Asegúrate de importar MessageSender correctamente
+from src.messaging.infrastructure.MySqlMessageRepository import MySqlMessageRepository
+from src.messaging.infrastructure.WhatsAppService import WhatsAppService  # Asegúrate de importar WhatsAppService correctamente
+from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
-from src.users.domain.exceptions import UserNotFoundException
-from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 
 router = APIRouter(
-    prefix=("/api/v1/payments")
+    prefix="/api/v1/payments",
+    tags=["payments"]
 )
 
 class PaymentItemModel(BaseModel):
@@ -35,7 +38,9 @@ async def create_payment(
 ):
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
+    mercado_pago_service = MercadoPagoService()
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
+
     try:
         result = payment_processor.create_payment(
             payment_data.user_id,
@@ -44,36 +49,51 @@ async def create_payment(
             payment_data.description
         )
         return result
-    except UserNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PaymentProcessingException as e:
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/notifications")
-async def receive_notifications(request: Request):
-    db = SessionLocal()
+async def receive_notifications(request: Request, db: Session = Depends(get_db)):
+    payment_repo = MySqlPaymentRepository(db)
+    user_repo = MySqlUserRepository(db)
+    mercado_pago_service = MercadoPagoService()
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
+
+    # Repositorio y servicio de mensajería
+    message_repo = MySqlMessageRepository(db)
+    whatsapp_service = WhatsAppService()  # Crear instancia del servicio de WhatsApp
+    message_sender = MessageSender(message_repo, whatsapp_service)
+
     try:
-        try:
-            data = await request.json()
-        except:
-            data = dict(request.query_params)
+        # Obtener la notificación de Mercado Pago
+        data = await request.json()
+        print(f"Notification data received: {data}")
 
-        print("Datos de la notificación recibidos:", data)
-
-        payment_repo = MySqlPaymentRepository(db)
-        user_repo = MySqlUserRepository(db)
-        payment_processor = PaymentProcessor(payment_repo, user_repo)
+        # Procesar la notificación de pago
         payment = payment_processor.process_notification(data)
-        print(f"Notificación procesada. Pago actualizado: {payment}")
+        
+        # Información del destinatario y contenido del mensaje
+        recipient_phone_number = "529515271070"  # Cambia esto por el número del destinatario si es necesario
+        status = payment.status
+        amount = f"{payment.amount}"
+        currency = payment.currency_id
+        payment_id = payment.payment_id
 
-        return {"status": "success"}
+        # Llamamos al servicio de mensajería para enviar el mensaje de confirmación de pago
+        print(f"Sending WhatsApp message to {recipient_phone_number}")
+        message = message_sender.send_payment_confirmation(
+            recipient_phone_number=recipient_phone_number,
+            status=status,
+            amount=amount,
+            currency=currency,
+            payment_id=payment_id
+        )
+        print(f"WhatsApp message sent successfully: {message}")
+
+        return {"status": "success", "message_id": message.id}
     except Exception as e:
-        print("Error procesando la notificación:", str(e))
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-    finally:
-        db.close()
-        print("Sesión de base de datos cerrada")
-
+        print(f"Error processing notification: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/retorno")
 async def payment_return(request: Request, db: Session = Depends(get_db)):
@@ -84,28 +104,17 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
 
     payment_repo = MySqlPaymentRepository(db)
     user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
+    mercado_pago_service = MercadoPagoService()
+    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
 
     if payment_id:
         try:
             payment = payment_processor.get_payment_status(payment_id)
-            status = payment.status
-            status_detail = payment.status_detail
-
-            if status == "approved":
-                mensaje = "Tu pago ha sido aprobado."
-            elif status == "rejected":
-                mensaje = "Tu pago ha sido rechazado."
-            elif status == "in_process":
-                mensaje = "Tu pago está en proceso."
-            else:
-                mensaje = f"Estado de tu pago: {status}"
-
             return {
-                "message": mensaje,
-                "payment_id": payment_id,
-                "status": status,
-                "status_detail": status_detail
+                "message": f"Tu pago ha sido {payment.status}.",
+                "payment_id": payment.payment_id,
+                "status": payment.status,
+                "status_detail": payment.status_detail
             }
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -114,20 +123,3 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
             "message": "No se pudo obtener información del pago.",
             "status": status_param
         }
-
-@router.get("/status/{payment_id}")
-async def get_payment_status(payment_id: str, db: Session = Depends(get_db)):
-    payment_repo = MySqlPaymentRepository(db)
-    user_repo = MySqlUserRepository(db)
-    payment_processor = PaymentProcessor(payment_repo, user_repo)
-    try:
-        payment = payment_processor.get_payment_status(payment_id)
-        return {
-            "payment_id": payment.payment_id,
-            "status": payment.status,
-            "status_detail": payment.status_detail
-        }
-    except PaymentNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))

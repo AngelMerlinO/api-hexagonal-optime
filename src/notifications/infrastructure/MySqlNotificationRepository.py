@@ -1,5 +1,6 @@
 from src.notifications.domain.NotificationRepository import NotificationRepository
-from src.notifications.domain.Notification import Notification
+from src.notifications.infrastructure.orm.NotificationModel import NotificationModel
+from src.notifications.domain.Notification import Notification, NotificationType, NotificationStatus
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -8,25 +9,76 @@ class MySqlNotificationRepository(NotificationRepository):
         self.db_session = db_session
 
     def save(self, notification: Notification):
-        self.db_session.add(notification)
+        notification_model = NotificationModel(
+            uuid=notification.uuid,
+            user_id=notification.user_id,
+            title=notification.title,
+            message=notification.message,
+            type=notification.type.value,
+            status=notification.status.value,
+            link=notification.link
+        )
+        self.db_session.add(notification_model)
         self.db_session.commit()
-        self.db_session.refresh(notification)
+        self.db_session.refresh(notification_model)
+
+        notification.id = notification_model.id
         return notification
 
     def find_by_id(self, notification_id: int) -> Notification:
-        notification = self.db_session.query(Notification).filter_by(id=notification_id).first()
-        return notification
+        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification_id).first()
+        if not notification_model:
+            raise ValueError(f"Notification with ID {notification_id} not found")
+        
+        return Notification(
+            id=notification_model.id,
+            uuid=notification_model.uuid,
+            user_id=notification_model.user_id,
+            title=notification_model.title,
+            message=notification_model.message,
+            type=NotificationType(notification_model.type.name), 
+            status=NotificationStatus(notification_model.status.name),
+            link=notification_model.link
+        )
 
     def find_by_user_id(self, user_id: int) -> List[Notification]:
-        notifications = self.db_session.query(Notification).filter_by(user_id=user_id).all()
+        notification_models = self.db_session.query(NotificationModel).filter_by(user_id=user_id).all()
+
+        notifications = [
+            Notification(
+                id=notification_model.id,
+                uuid=notification_model.uuid,
+                user_id=notification_model.user_id,
+                title=notification_model.title,
+                message=notification_model.message,
+                type=NotificationType(notification_model.type),
+                status=NotificationStatus(notification_model.status),
+                link=notification_model.link
+            )
+            for notification_model in notification_models
+        ]
+
         return notifications
 
     def update(self, notification: Notification):
-        self.db_session.merge(notification)  # Usar merge para combinar el objeto actualizado
+        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification.id).first()
+        if not notification_model:
+            raise ValueError(f"Notification with ID {notification.id} not found")
+        
+        notification_model.title = notification.title
+        notification_model.message = notification.message
+        notification_model.type = notification.type.value
+        notification_model.status = notification.status.value
+        notification_model.link = notification.link
+
         self.db_session.commit()
-        self.db_session.refresh(notification)  # Refrescar el objeto para obtener los últimos cambios
-        return notification  # Asegúrate de retornar el objeto actualizado
+        self.db_session.refresh(notification_model)
+        return notification
 
     def delete(self, notification: Notification):
-        self.db_session.delete(notification)
+        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification.id).first()
+        if not notification_model:
+            raise ValueError(f"Notification with ID {notification.id} not found")
+        
+        self.db_session.delete(notification_model)
         self.db_session.commit()

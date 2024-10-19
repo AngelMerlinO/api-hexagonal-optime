@@ -18,15 +18,14 @@ router = APIRouter(
     tags=["notifications"]
 )
 
-# Modelos Pydantic
 class NotificationCreateModel(BaseModel):
     user_id: int
     title: str
     message: str
-    type: str  # 'email', 'sms', 'push', 'in_app'
+    type: str 
     link: Optional[str] = None
     
-class NotificationUpdateModel(BaseModel):  # Este modelo solo debe tener los campos que puedes actualizar
+class NotificationUpdateModel(BaseModel):  
     title: Optional[str] = None
     message: Optional[str] = None
     type: Optional[str] = None
@@ -38,7 +37,7 @@ class NotificationUpdateResponse(BaseModel):
     message: Optional[str] = None
     type: Optional[str] = None
     link: Optional[str] = None
-    status: str  # Este campo puede ser solo para la respuesta
+    status: str
 
 
 @router.post("/")
@@ -68,18 +67,16 @@ def create_notification(
 @router.put("/{notification_id}")
 def update_notifications(
     notification_id: int, 
-    notification_data: NotificationUpdateModel,  # Cambié el modelo aquí
+    notification_data: NotificationUpdateModel,
     db: Session = Depends(get_db)
 ):
     repo = MySqlNotificationRepository(db)
     
     try:
-        # Busca la notificación existente
         existing_notification = repo.find_by_id(notification_id)
         if not existing_notification:
             raise HTTPException(status_code=404, detail='Notification not found')
         
-        # Actualiza solo los campos que no son None
         if notification_data.title is not None:
             existing_notification.title = notification_data.title
         if notification_data.message is not None:
@@ -89,7 +86,6 @@ def update_notifications(
         if notification_data.link is not None:
             existing_notification.link = notification_data.link
         
-        # Guarda los cambios en la base de datos
         updated_notification = repo.update(existing_notification)
         
         return NotificationUpdateResponse(
@@ -101,7 +97,6 @@ def update_notifications(
             link=updated_notification.link
         )
     except Exception as e:
-        # Capturamos y mostramos el error completo en la respuesta
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
 @router.delete("/")

@@ -18,7 +18,6 @@ router = APIRouter(
     tags=["schedules"]
 )
 
-# Modelos Pydantic
 class ScheduleItemModel(BaseModel):
     nombre: str
     grupo: Optional[str] = None
@@ -58,21 +57,15 @@ def create_schedule(
 @router.delete("/{schedule_id}")
 def delete_schedule(
     schedule_id: int,
-    user_id: int,
+    user_id: int = Query(..., description="User ID is required"),
     db: Session = Depends(get_db)
 ):
-    schedule_repo = MySqlScheduleRepository(db)
-    user_repo = MySqlUserRepository(db)
-    schedule_deleter = ScheduleDeleter(schedule_repo, user_repo)
+    repo = MySqlScheduleRepository(db)
     try:
-        schedule_deleter.delete(schedule_id, user_id)
-        return {"message": "Schedule deleted successfully"}
-    except UserNotFoundException as e:
+        repo.delete(schedule_id)
+        return {"message": f"Schedule with ID {schedule_id} deleted successfully"}
+    except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except ScheduleNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except PermissionError as e:
-        raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -80,18 +73,19 @@ class ScheduleUpdateModel(BaseModel):
     user_id: int
     items: List[ScheduleItemModel]
 
-@router.put("/{schedule_id}")
+@router.put("/{schedule_uuid}")
 def update_schedule(
-    schedule_id: int,
+    schedule_uuid: str,  
     schedule_data: ScheduleUpdateModel,
     db: Session = Depends(get_db)
 ):
     schedule_repo = MySqlScheduleRepository(db)
     user_repo = MySqlUserRepository(db)
     schedule_updater = ScheduleUpdater(schedule_repo, user_repo)
+
     try:
         schedule = schedule_updater.update(
-            schedule_id,
+            schedule_uuid,
             schedule_data.user_id,
             [item.dict() for item in schedule_data.items]
         )
@@ -105,9 +99,9 @@ def update_schedule(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.get("/{user_id}")
+@router.get("/{schedule_id}/{schedule_uuid}")
 def get_schedules(
-    user_id: int,
+    user_id: int = Query(..., description="User ID is required"),
     skip: int = Query(0, ge=0, description="Number of elements to skip"),
     limit: int = Query(6, ge=1, le=100, description="Maximum number of items to return"),
     db: Session = Depends(get_db)
@@ -121,6 +115,7 @@ def get_schedules(
         for schedule in schedules:
             schedule_data = {
                 "id": schedule.id,
+                "uuid": schedule.uuid,
                 "user_id": schedule.user_id,
                 "items": [
                     {
