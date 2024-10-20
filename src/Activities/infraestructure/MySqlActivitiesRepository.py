@@ -31,7 +31,7 @@ class MySqlActivitiesRepository(ActivitiesRepository):
         self.db_session.commit()
         
     def find_by_id(self, activity_id: int) -> Activities:
-        activity_model = self.db_session.query(ActivitiesModel).filter_by(id=activity_id).first()
+        activity_model = self.db_session.query(ActivitiesModel).filter(ActivitiesModel.id == activity_id).first()
         if not activity_model:
             raise ValueError(f"Activity with ID {activity_id} not found")
         

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, TIMESTAMP
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime
+from sqlalchemy.orm import relationship, composite
 from sqlalchemy.sql import func
 from config.database import Base
+from src.notifications.domain.Timestamp import Timestamps
 import enum
 import uuid
 
@@ -27,8 +28,11 @@ class NotificationModel(Base):
     type = Column(Enum(NotificationTypeEnum), nullable=False)
     status = Column(Enum(NotificationStatusEnum), nullable=False, server_default='pending')
     link = Column(String(255), nullable=True)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp())
-    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    deleted_at = Column(DateTime, nullable=True)
+    
+    timestamps = composite(Timestamps, created_at, updated_at, deleted_at)
 
     user = relationship('UserModel', back_populates='notifications')
 
