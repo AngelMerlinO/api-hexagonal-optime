@@ -3,24 +3,29 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
-# Cargar las variables del archivo .env
+# Definir Base
+Base = declarative_base()
+
+# Cargar las variables del archivo .env si existe
 load_dotenv()
 
 # Leer las variables de entorno
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST')
-DB_NAME = os.getenv('DB_NAME')
-DB_PORT = os.getenv('DB_PORT')
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Si no se encuentra DATABASE_URL, se intenta construir para MySQL
+if not DATABASE_URL:
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_HOST = os.getenv('DB_HOST')
+    DB_NAME = os.getenv('DB_NAME')
+    DB_PORT = os.getenv('DB_PORT')
+    
+    # Construir la URL de MySQL
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Crear el motor y sesión de SQLAlchemy
+# Crear el engine y la sesión de SQLAlchemy
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Definir Base
-Base = declarative_base()  # Agregado
 
 def get_db():
     db = SessionLocal()
