@@ -3,18 +3,25 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from config.database import Base
 
+# Cambiamos el scope de session a function para evitar el ScopeMismatch
+@pytest.fixture(scope='function', autouse=True)
+def use_sqlite_for_tests(monkeypatch):
+    # Sobrescribir DATABASE_URL para que apunte a SQLite en memoria
+    monkeypatch.setenv('DATABASE_URL', 'sqlite:///:memory:')
+
 @pytest.fixture(scope='function')
 def db_session():
-    # Configuración de la base de datos en memoria para pruebas
-    engine = create_engine("sqlite:///:memory:")
-    Session = sessionmaker(bind=engine)
+    # Crear el engine para usar SQLite en memoria para las pruebas
+    test_engine = create_engine("sqlite:///:memory:")
 
-    # Crea todas las tablas en la base de datos en memoria
-    Base.metadata.create_all(engine)
+    # Crear todas las tablas en la base de datos en memoria
+    Base.metadata.create_all(test_engine)
 
-    session = Session()
+    # Crear sesión
+    session = sessionmaker(bind=test_engine)()
+
     yield session
 
-    # Limpia la base de datos después de cada prueba
+    # Limpiar la base de datos después de cada prueba
     session.close()
-    Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(test_engine)
