@@ -6,14 +6,14 @@ import os
 
 @pytest.fixture(scope='session', autouse=True)
 def use_sqlite_for_tests(monkeypatch):
-    # Sobrescribir las variables de entorno para usar SQLite en memoria
+    # Sobrescribir las variables de entorno para usar SQLite en lugar de MySQL
     monkeypatch.setenv('DB_USER', '')
     monkeypatch.setenv('DB_PASSWORD', '')
     monkeypatch.setenv('DB_HOST', '')
     monkeypatch.setenv('DB_NAME', ':memory:')
     monkeypatch.setenv('DB_PORT', '')
 
-    # Cambiar DATABASE_URL para que apunte a SQLite
+    # Sobrescribir DATABASE_URL para que apunte a SQLite en memoria
     monkeypatch.setenv('DATABASE_URL', 'sqlite:///:memory:')
 
 @pytest.fixture(scope='function')
