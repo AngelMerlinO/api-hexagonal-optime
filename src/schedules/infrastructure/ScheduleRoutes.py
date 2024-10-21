@@ -99,7 +99,7 @@ def update_schedule(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.get("/{schedule_id}/{schedule_uuid}")
+@router.get("/{schedule_id}/class/{schedule_uuid}")
 def get_schedules(
     user_id: int = Query(..., description="User ID is required"),
     skip: int = Query(0, ge=0, description="Number of elements to skip"),
