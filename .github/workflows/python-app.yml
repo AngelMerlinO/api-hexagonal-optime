@@ -29,8 +29,7 @@ jobs:
 
     - name: Set up test database
       run: |
-        # Configura la base de datos de prueba con SQLite
-        echo "DATABASE_URL=sqlite:///./test.db" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
 
     - name: Lint with flake8
       run: |
