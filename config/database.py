@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
-# Definir Base antes de cualquier otra importación o lógica
+# Definir Base
 Base = declarative_base()
 
 # Cargar las variables del archivo .env
