@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship, composite
 from sqlalchemy.dialects.mysql import JSON
 from config.database import Base
+from src.schedules.domain.Timestamp import Timestamps
+from sqlalchemy.sql import func
 import uuid
 
 
@@ -22,6 +24,11 @@ class ScheduleItemModel(Base):
     miercoles = Column(JSON, nullable=True)
     jueves = Column(JSON, nullable=True)
     viernes = Column(JSON, nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
+    updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    deleted_at = Column(DateTime, nullable=True)
+    
+    timestamps = composite(Timestamps, created_at, updated_at, deleted_at)
 
     schedule = relationship('ScheduleModel', back_populates='schedule_items')
 
