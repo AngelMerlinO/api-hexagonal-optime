@@ -1,22 +1,31 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config.database import Base, engine as default_engine  # Importar Base y el engine
+from config.database import Base
+import os
+
+@pytest.fixture(scope='session', autouse=True)
+def use_sqlite_for_tests(monkeypatch):
+    # Sobrescribir las variables de entorno para usar SQLite en memoria
+    monkeypatch.setenv('DB_USER', '')
+    monkeypatch.setenv('DB_PASSWORD', '')
+    monkeypatch.setenv('DB_HOST', '')
+    monkeypatch.setenv('DB_NAME', ':memory:')
+    monkeypatch.setenv('DB_PORT', '')
+
+    # Cambiar DATABASE_URL para que apunte a SQLite
+    monkeypatch.setenv('DATABASE_URL', 'sqlite:///:memory:')
 
 @pytest.fixture(scope='function')
-def db_session(monkeypatch):
+def db_session():
     # Crear el engine para usar SQLite en memoria para las pruebas
     test_engine = create_engine("sqlite:///:memory:")
 
     # Crear todas las tablas en la base de datos en memoria
     Base.metadata.create_all(test_engine)
 
-    # Mockear la sesión para que utilice SQLite
+    # Crear sesión
     session = sessionmaker(bind=test_engine)()
-
-    # Parchar el engine y SessionLocal para usar SQLite en lugar de MySQL
-    monkeypatch.setattr('config.database.engine', test_engine)
-    monkeypatch.setattr('config.database.SessionLocal', lambda: session)
 
     yield session
 
