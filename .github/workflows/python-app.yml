@@ -34,11 +34,15 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        # stop the build if there are Python syntax errors or undefined names
+        # Detén el build si hay errores de sintaxis o nombres indefinidos en Python
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
+        # exit-zero trata todos los errores como advertencias (warnings)
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
+    - name: Run unit tests with pytest
       run: |
-        pytest --maxfail=5 --disable-warnings
+        pytest tests/unit --maxfail=5 --disable-warnings
+
+    - name: Run integration tests with pytest
+      run: |
+        pytest tests/integration --maxfail=5 --disable-warnings
