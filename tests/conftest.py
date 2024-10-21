@@ -2,17 +2,10 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from config.database import Base
-import os
 
-@pytest.fixture(scope='session', autouse=True)
+# Cambiamos el scope de session a function para evitar el ScopeMismatch
+@pytest.fixture(scope='function', autouse=True)
 def use_sqlite_for_tests(monkeypatch):
-    # Sobrescribir las variables de entorno para usar SQLite en lugar de MySQL
-    monkeypatch.setenv('DB_USER', '')
-    monkeypatch.setenv('DB_PASSWORD', '')
-    monkeypatch.setenv('DB_HOST', '')
-    monkeypatch.setenv('DB_NAME', ':memory:')
-    monkeypatch.setenv('DB_PORT', '')
-
     # Sobrescribir DATABASE_URL para que apunte a SQLite en memoria
     monkeypatch.setenv('DATABASE_URL', 'sqlite:///:memory:')
 
