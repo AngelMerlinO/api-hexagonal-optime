@@ -27,6 +27,7 @@ jobs:
         pip install -r requirements.txt
         pip install pytest flake8
 
+    # Configura SQLite para que siempre sea usado en las pruebas
     - name: Set up test database
       run: |
         echo "DATABASE_URL=sqlite:///:memory:" >> $GITHUB_ENV
@@ -38,10 +39,12 @@ jobs:
         # exit-zero trata todos los errores como advertencias (warnings)
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    # Ejecuta las pruebas unitarias
     - name: Run unit tests with pytest
       run: |
         pytest tests/unit --maxfail=5 --disable-warnings
 
+    # Ejecuta las pruebas de integración
     - name: Run integration tests with pytest
       run: |
         pytest tests/integration --maxfail=5 --disable-warnings
