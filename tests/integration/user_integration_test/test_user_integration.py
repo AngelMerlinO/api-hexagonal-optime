@@ -2,9 +2,14 @@ from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.users.application.UserCreator import UserCreator
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
 from src.users.domain.User import User
+
 from src.contact.infraestructure.orm.ContactModel import ContactModel
 from src.users.infrastructure.orm.UserModel import UserModel
 from src.schedules.infrastructure.orm.ScheduleModel import ScheduleModel
+from src.notifications.infrastructure.orm.NotificationModel import NotificationModel
+from src.Activities.infraestructure.orm.ActivitiesModel import ActivitiesModel
+from src.payments.infrastructure.orm.PaymentModel import PaymentModel
+from src.schedules.infrastructure.orm.ScheduleItemModel import ScheduleItemModel
 
 def test_create_user_integration(db_session):
     # Repositorios
@@ -12,7 +17,7 @@ def test_create_user_integration(db_session):
     contact_repository = MySqlContactRepository(db_session)
 
     # Simula un contacto válido
-    contact = ContactModel(id=1, name="John Doe")
+    contact = ContactModel(id=1, email="221255@ids.upchiapas.edu.mx",phone="9611234567")
     db_session.add(contact)
     db_session.commit()
 
