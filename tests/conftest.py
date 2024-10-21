@@ -1,8 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config.database import Base
-from config.database import SessionLocal, engine as default_engine
+from config.database import Base, engine as default_engine  # Importar Base y el engine
 
 @pytest.fixture(scope='function')
 def db_session(monkeypatch):
@@ -12,10 +11,11 @@ def db_session(monkeypatch):
     # Crear todas las tablas en la base de datos en memoria
     Base.metadata.create_all(test_engine)
 
-    # Mockear la conexión del motor de SQLAlchemy a SQLite
+    # Mockear la sesión para que utilice SQLite
     session = sessionmaker(bind=test_engine)()
 
-    # Parchar la sesión local para usar la sesión SQLite en lugar de MySQL
+    # Parchar el engine y SessionLocal para usar SQLite en lugar de MySQL
+    monkeypatch.setattr('config.database.engine', test_engine)
     monkeypatch.setattr('config.database.SessionLocal', lambda: session)
 
     yield session
