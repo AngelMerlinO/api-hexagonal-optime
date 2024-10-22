@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship, composite
 from config.database import Base
 from src.users.domain.Timestamp import Timestamps
+from src.users.infrastructure.VerifyAtType import VerifyAtType
 from sqlalchemy.sql import func   
 
 class UserModel(Base):
@@ -14,6 +15,7 @@ class UserModel(Base):
     username = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
+    verify_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
     deleted_at = Column(DateTime, nullable=True)
