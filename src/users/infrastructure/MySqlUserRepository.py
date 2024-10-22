@@ -3,6 +3,7 @@ from src.users.domain.UserRepository import UserRepository
 from src.users.infrastructure.orm.UserModel import UserModel
 from src.users.domain.User import User
 from typing import Optional
+from datetime import datetime
 
 
 class MySqlUserRepository(UserRepository):
@@ -10,12 +11,16 @@ class MySqlUserRepository(UserRepository):
         self.db = db
 
     def save(self, user: User):
+        
+        current_time = datetime.now()
+        
         user_model = UserModel(
             uuid=user.uuid,
             contact_id=user.contact_id,
             username=user.username,
             email=user.email,
-            password=user.password
+            password=user.password,
+            verify_at=current_time
         )
         self.db.add(user_model)
         self.db.commit()
