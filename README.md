@@ -71,7 +71,7 @@ Guía de Instalación y Ejecución
       - macOS/Linux: `source venv/bin/activate`
   4. Instalar las dependencias: `pip install -r requirements.txt`
   5. Ejecutar el script `config/create_db_user.sql` en tu administrador de base de datos.
-  6. Crear el archivo `.env` utilizando el ejemplo proporcionado en el proyecto.
+  6. Crear el archivo `.env` utilizando el ejemplo proporcionado en el proyecto .envExample.
   7. Configurar los tokens de acceso de servicios externos como Mercado Pago o Meta API en tu archivo `.env`.
   8. Ejecutar las migraciones de la base de datos: `alembic upgrade head`
   9. Iniciar ngrok para exponer tu aplicación: `ngrok http 8000`.
