@@ -77,6 +77,7 @@ Guía de Instalación y Ejecución
   9. Iniciar ngrok para exponer tu aplicación: `ngrok http 8000`.
   10. Agregar el URL  de ngrok en el archivo `.env`.
   11. Iniciar la aplicación: `uvicorn main:app --reload`
+  12. En caso de usar certificados ssl `uvicorn main:app --host 0.0.0.0 --port $PORT --reload --ssl-keyfile=$SSL_KEYFILE --ssl-certfile=$SSL_CERTFILE`
   
   12. Testear los endpoints utilizando Postman: [Documentación de Postman Api-Optime](https://documenter.getpostman.com/view/30415321/2sAXxLBZW6#79b970a8-df6b-486c-936c-eb714da4815cT)
 
