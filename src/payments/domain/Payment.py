@@ -1,4 +1,3 @@
-# src/payments/domain/Payment.py
 from decimal import Decimal
 from datetime import datetime
 
@@ -16,7 +15,7 @@ class Payment:
         date_created: datetime = None,
         id: int = None
     ):
-        self.id = id  # Agregamos el id
+        self.id = id
         self.user_id = user_id
         self.preference_id = preference_id
         self.amount = amount

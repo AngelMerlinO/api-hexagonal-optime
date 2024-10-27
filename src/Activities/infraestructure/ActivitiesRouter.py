@@ -10,6 +10,7 @@ from config.database import get_db
 from pydantic import BaseModel
 from datetime import date
 from fastapi import Query
+from src.auth.jwt_handler import get_current_user
 
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
@@ -38,9 +39,14 @@ class ActivitiesUpdate(BaseModel):
     status: str = None
     
 @router.get("/{activities_id}")
-def find_by_id(activities_id: int, db: Session = Depends(get_db)):
-    activity_repo = MySqlActivitiesRepository(db)
+def find_by_id(
+    activities_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: str = Depends(get_current_user)
+    ):
     
+    activity_repo = MySqlActivitiesRepository(db)
+
     try:
         activity_model = activity_repo.find_by_id(activities_id)
         if not activity_model:
@@ -63,8 +69,10 @@ def find_by_id(activities_id: int, db: Session = Depends(get_db)):
 @router.post("/")
 def create_activities(
     activity_data: ActivitiesCreate,
-    db: Session = Depends(get_db) 
-):
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+    ):
+    
     activity_repo = MySqlActivitiesRepository(db)
     user_repo = MySqlUserRepository(db)
 
@@ -99,7 +107,13 @@ def create_activities(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{activities_id}")
-def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Session = Depends(get_db)):
+def update_activities(
+    activities_id: int, 
+    activities: ActivitiesUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: str = Depends(get_current_user)
+    ):
+    
     repo = MySqlActivitiesRepository(db)
     activities_updater = ActivitiesUpdater(repo)
     try:
@@ -129,8 +143,10 @@ def update_activities(activities_id: int, activities: ActivitiesUpdate, db: Sess
 @router.delete("/")
 def delete_activities(
     activities_id = Query(..., description="ID of the activity to be deleted"), 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
     ):
+    
     repo = MySqlActivitiesRepository(db)
     activities_eliminator = ActivitiesEliminator(repo) 
     try:
@@ -140,5 +156,3 @@ def delete_activities(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-

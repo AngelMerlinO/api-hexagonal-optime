@@ -5,13 +5,13 @@ from src.schedules.application.ScheduleDeleter import ScheduleDeleter
 from src.schedules.application.ScheduleUpdater import ScheduleUpdater
 from src.schedules.application.ScheduleRetriever import ScheduleRetriever
 from src.schedules.infrastructure.MySqlScheduleRepository import MySqlScheduleRepository
-from config.database import get_db
-from pydantic import BaseModel
-from typing import List, Optional
-
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.users.domain.exceptions import UserNotFoundException
 from src.schedules.domain.exceptions import ScheduleNotFoundException
+from src.auth.jwt_handler import get_current_user
+from config.database import get_db
+from pydantic import BaseModel
+from typing import List, Optional
 
 router = APIRouter(
     prefix=("/api/v1/schedules"),
@@ -35,10 +35,15 @@ class ScheduleCreateModel(BaseModel):
     user_id: int
     items: List[ScheduleItemModel]
 
+class ScheduleUpdateModel(BaseModel):
+    user_id: int
+    items: List[ScheduleItemModel]
+
 @router.post("/")
 def create_schedule(
     schedule_data: ScheduleCreateModel,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     schedule_repo = MySqlScheduleRepository(db)
     user_repo = MySqlUserRepository(db)
@@ -58,7 +63,8 @@ def create_schedule(
 def delete_schedule(
     schedule_id: int,
     user_id: int = Query(..., description="User ID is required"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     repo = MySqlScheduleRepository(db)
     try:
@@ -69,15 +75,12 @@ def delete_schedule(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-class ScheduleUpdateModel(BaseModel):
-    user_id: int
-    items: List[ScheduleItemModel]
-
 @router.put("/{schedule_uuid}")
 def update_schedule(
     schedule_uuid: str,  
     schedule_data: ScheduleUpdateModel,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     schedule_repo = MySqlScheduleRepository(db)
     user_repo = MySqlUserRepository(db)
@@ -104,7 +107,8 @@ def get_schedules(
     user_id: int = Query(..., description="User ID is required"),
     skip: int = Query(0, ge=0, description="Number of elements to skip"),
     limit: int = Query(6, ge=1, le=100, description="Maximum number of items to return"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
 ):
     schedule_repo = MySqlScheduleRepository(db)
     user_repo = MySqlUserRepository(db)

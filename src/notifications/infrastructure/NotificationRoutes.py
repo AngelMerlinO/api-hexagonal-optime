@@ -5,11 +5,11 @@ from src.notifications.infrastructure.MySqlNotificationRepository import MySqlNo
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.notifications.application.NotificationUpdater import NotificationUpdater
 from src.notifications.application.NotificationEliminator import NotificationEliminator
+from src.auth.jwt_handler import get_current_user
 from config.database import get_db
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import Query
-
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 
@@ -39,12 +39,13 @@ class NotificationUpdateResponse(BaseModel):
     link: Optional[str] = None
     status: str
 
-
 @router.post("/")
 def create_notification(
     notification_data: NotificationCreateModel,
-    db: Session = Depends(get_db)
-):
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+    ):
+    
     notification_repo = MySqlNotificationRepository(db)
     user_repo = MySqlUserRepository(db)
     notification_creator = NotificationCreator(notification_repo, user_repo)
@@ -68,8 +69,10 @@ def create_notification(
 def update_notifications(
     notification_id: int, 
     notification_data: NotificationUpdateModel,
-    db: Session = Depends(get_db)
-):
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+    ):
+    
     repo = MySqlNotificationRepository(db)
     
     try:
@@ -102,7 +105,8 @@ def update_notifications(
 @router.delete("/")
 def delete_notifications(
     notification_id = Query(..., description="ID of the notification to be deleted"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
     ):
     
     repo = MySqlNotificationRepository(db)

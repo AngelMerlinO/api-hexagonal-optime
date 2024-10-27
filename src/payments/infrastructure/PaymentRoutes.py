@@ -73,7 +73,7 @@ async def receive_notifications(request: Request, db: Session = Depends(get_db))
         payment = payment_processor.process_notification(data)
         
         # Información del destinatario y contenido del mensaje
-        recipient_phone_number = "529515271070"  # Cambia esto por el número del destinatario si es necesario
+        recipient_phone_number = "529515271070" 
         status = payment.status
         amount = f"{payment.amount}"
         currency = payment.currency_id

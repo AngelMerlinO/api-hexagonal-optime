@@ -28,6 +28,9 @@ class MySqlUserRepository(UserRepository):
 
         user.id = user_model.id
         print(user_model.id, "Este es el id del usuario")
+        
+    def find_by_username(self, username: str) -> Optional[UserModel]:
+        return self.db.query(UserModel).filter(UserModel.username == username).first()
 
     def update_by_id(self, id: int, username: Optional[str], email: Optional[str], password: Optional[str]):
         user_model = self.db.query(UserModel).filter(UserModel.id == id).first()
