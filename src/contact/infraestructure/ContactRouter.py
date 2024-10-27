@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.contact.application.ContactCreator import ContactCreator
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
 from src.contact.infraestructure.HttpContactNotificationService import HttpContactNotificationService
+from slowapi.util import get_remote_address
+from slowapi import Limiter
 from config.database import get_db
 from pydantic import BaseModel
 
 from src.contact.domain.exceptions import ContactAlreadyExistsException, InvalidContactDataException
 import os
 from dotenv import load_dotenv
+
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
     prefix="/api/v1/contacts",
@@ -23,7 +28,8 @@ class ContactCreate(BaseModel):
 LAMBDA_URL = os.getenv("AWS_ACCESS_CREATE_OPT")
 
 @router.post("/")
-def create_contact(contact_data: ContactCreate, db: Session = Depends(get_db)):
+@limiter.limit("2/minute")  
+def create_contact(contact_data: ContactCreate, request:Request, db: Session = Depends(get_db)):
     contact_repo = MySqlContactRepository(db)
     notification_service = HttpContactNotificationService(lambda_url=LAMBDA_URL)  # Inyectar el servicio de notificación
     

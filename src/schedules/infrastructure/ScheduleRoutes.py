@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from src.schedules.application.ScheduleCreator import ScheduleCreator
 from src.schedules.application.ScheduleDeleter import ScheduleDeleter
 from src.schedules.application.ScheduleUpdater import ScheduleUpdater
 from src.schedules.application.ScheduleRetriever import ScheduleRetriever
 from src.schedules.infrastructure.MySqlScheduleRepository import MySqlScheduleRepository
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.users.domain.exceptions import UserNotFoundException
 from src.schedules.domain.exceptions import ScheduleNotFoundException
@@ -12,6 +14,8 @@ from src.auth.jwt_handler import get_current_user
 from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
     prefix=("/api/v1/schedules"),
@@ -40,8 +44,10 @@ class ScheduleUpdateModel(BaseModel):
     items: List[ScheduleItemModel]
 
 @router.post("/")
+@limiter.limit("2/minute")  
 def create_schedule(
     schedule_data: ScheduleCreateModel,
+    request:Request,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):
@@ -60,8 +66,10 @@ def create_schedule(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{schedule_id}")
+@limiter.limit("2/minute")  
 def delete_schedule(
     schedule_id: int,
+    request:Request,
     user_id: int = Query(..., description="User ID is required"),
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
@@ -76,9 +84,11 @@ def delete_schedule(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{schedule_uuid}")
+@limiter.limit("2/minute")  
 def update_schedule(
     schedule_uuid: str,  
     schedule_data: ScheduleUpdateModel,
+    request:Request,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):

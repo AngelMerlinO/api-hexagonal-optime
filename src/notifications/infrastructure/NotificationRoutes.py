@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.notifications.application.NotificationCreator import NotificationCreator
 from src.notifications.infrastructure.MySqlNotificationRepository import MySqlNotificationRepository
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.notifications.application.NotificationUpdater import NotificationUpdater
 from src.notifications.application.NotificationEliminator import NotificationEliminator
+from slowapi.util import get_remote_address
+from slowapi import Limiter
 from src.auth.jwt_handler import get_current_user
 from config.database import get_db
 from pydantic import BaseModel
@@ -12,6 +14,8 @@ from typing import Optional
 from fastapi import Query
 from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
     prefix=("/api/v1/notifications"),
@@ -40,8 +44,10 @@ class NotificationUpdateResponse(BaseModel):
     status: str
 
 @router.post("/")
+@limiter.limit("2/minute")  
 def create_notification(
     notification_data: NotificationCreateModel,
+    request:Request,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
     ):
@@ -66,10 +72,12 @@ def create_notification(
         raise HTTPException(status_code=400, detail=str(e))
     
 @router.put("/{notification_id}")
+@limiter.limit("2/minute")  
 def update_notifications(
     notification_id: int, 
     notification_data: NotificationUpdateModel,
-    db: Session = Depends(get_db),
+    request:Request,
+    db: Session = Depends(get_db),,
     current_user: str = Depends(get_current_user)
     ):
     
@@ -103,7 +111,9 @@ def update_notifications(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
 @router.delete("/")
+@limiter.limit("2/minute")  
 def delete_notifications(
+    request: Request,
     notification_id = Query(..., description="ID of the notification to be deleted"),
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
