@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
-=======
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
->>>>>>> 75da6e8 (fix code)
+from fastapi import APIRouter, Depends, HTTPException, Request, Query 
 from sqlalchemy.orm import Session
 from src.users.application.UserCreator import UserCreator
 from src.users.application.UserUpdater import UserUpdater
@@ -62,13 +58,8 @@ class UserUpdate(BaseModel):
 @router.get("/{user_id}")
 @limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
 def find_user_by_id(
-<<<<<<< HEAD
-    user_id: int, request: Request, 
-    db: Session = Depends(get_db),
-=======
     user_id: int, 
     request: Request, db: Session = Depends(get_db),
->>>>>>> 75da6e8 (fix code)
     current_user: str = Depends(get_current_user)
     ):
     
@@ -113,13 +104,8 @@ def create_user(user: UserCreate,request:Request, db: Session = Depends(get_db))
 @router.put("/{user_id}")
 @limiter.limit("2/minute")  
 def update_user_by_id(
-<<<<<<< HEAD
-    user_id: int, request:Request, 
-    user: UserUpdate, 
-=======
     user_id: int, 
     request:Request, user: UserUpdate, 
->>>>>>> 75da6e8 (fix code)
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
     ):
@@ -141,13 +127,8 @@ def update_user_by_id(
 @router.delete("/{user_id}")
 @limiter.limit("1/minute")  
 def delete_user_by_id(
-<<<<<<< HEAD
-    user_id: int, request:Request, 
-    db: Session = Depends(get_db),
-=======
     user_id: int, 
     request:Request, db: Session = Depends(get_db),
->>>>>>> 75da6e8 (fix code)
     current_user: str = Depends(get_current_user)
     ):
     

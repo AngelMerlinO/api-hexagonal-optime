@@ -45,13 +45,8 @@ class ActivitiesUpdate(BaseModel):
 @router.get("/{activities_id}")
 @limiter.limit("2/minute")  
 def find_by_id(
-<<<<<<< HEAD
-    activities_id: int, request:Request, 
-    db: Session = Depends(get_db), 
-=======
     activities_id: int, 
     request:Request, db: Session = Depends(get_db), 
->>>>>>> 75da6e8 (fix code)
     current_user: str = Depends(get_current_user)
     ):
     
@@ -121,13 +116,8 @@ def create_activities(
 @router.put("/{activities_id}")
 @limiter.limit("2/minute")  
 def update_activities(
-<<<<<<< HEAD
-    activities_id: int, request:Request, 
-    activities: ActivitiesUpdate, 
-=======
     activities_id: int, 
     request:Request, activities: ActivitiesUpdate, 
->>>>>>> 75da6e8 (fix code)
     db: Session = Depends(get_db), 
     current_user: str = Depends(get_current_user)
     ):
@@ -163,13 +153,8 @@ def update_activities(
 def delete_activities(
     request: Request,
     activities_id = Query(..., description="ID of the activity to be deleted"), 
-<<<<<<< HEAD
-    db: Session = Depends(get_db),,
-    current_user: str = Depends(get_current_user)
-=======
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user),
->>>>>>> 75da6e8 (fix code)
     ):
     
     repo = MySqlActivitiesRepository(db)

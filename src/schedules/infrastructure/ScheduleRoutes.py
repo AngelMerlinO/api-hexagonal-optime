@@ -11,13 +11,6 @@ from src.schedules.domain.exceptions import ScheduleNotFoundException
 from src.auth.jwt_handler import get_current_user
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-<<<<<<< HEAD
-from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
-from src.users.domain.exceptions import UserNotFoundException
-from src.schedules.domain.exceptions import ScheduleNotFoundException
-from src.auth.jwt_handler import get_current_user
-=======
->>>>>>> 75da6e8 (fix code)
 from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
