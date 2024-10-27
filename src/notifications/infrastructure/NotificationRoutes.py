@@ -5,6 +5,7 @@ from src.notifications.infrastructure.MySqlNotificationRepository import MySqlNo
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.notifications.application.NotificationUpdater import NotificationUpdater
 from src.notifications.application.NotificationEliminator import NotificationEliminator
+from src.auth.jwt_handler import get_current_user
 from slowapi.util import get_remote_address
 from slowapi import Limiter
 from src.auth.jwt_handler import get_current_user
@@ -77,8 +78,13 @@ def update_notifications(
     notification_id: int, 
     notification_data: NotificationUpdateModel,
     request:Request,
+<<<<<<< HEAD
     db: Session = Depends(get_db),,
     current_user: str = Depends(get_current_user)
+=======
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user),
+>>>>>>> 75da6e8 (fix code)
     ):
     
     repo = MySqlNotificationRepository(db)

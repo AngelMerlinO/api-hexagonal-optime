@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
+=======
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+>>>>>>> 75da6e8 (fix code)
 from sqlalchemy.orm import Session
 from src.users.application.UserCreator import UserCreator
 from src.users.application.UserUpdater import UserUpdater
@@ -6,6 +10,8 @@ from src.users.application.UserEliminator import UserEliminator
 from src.users.application.UserFindById import UserFindById
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
+from src.auth.jwt_handler import create_access_token
+from src.auth.jwt_handler import get_current_user
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.auth.jwt_handler import create_access_token
@@ -56,8 +62,13 @@ class UserUpdate(BaseModel):
 @router.get("/{user_id}")
 @limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
 def find_user_by_id(
+<<<<<<< HEAD
     user_id: int, request: Request, 
     db: Session = Depends(get_db),
+=======
+    user_id: int, 
+    request: Request, db: Session = Depends(get_db),
+>>>>>>> 75da6e8 (fix code)
     current_user: str = Depends(get_current_user)
     ):
     
@@ -102,8 +113,13 @@ def create_user(user: UserCreate,request:Request, db: Session = Depends(get_db))
 @router.put("/{user_id}")
 @limiter.limit("2/minute")  
 def update_user_by_id(
+<<<<<<< HEAD
     user_id: int, request:Request, 
     user: UserUpdate, 
+=======
+    user_id: int, 
+    request:Request, user: UserUpdate, 
+>>>>>>> 75da6e8 (fix code)
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
     ):
@@ -125,8 +141,13 @@ def update_user_by_id(
 @router.delete("/{user_id}")
 @limiter.limit("1/minute")  
 def delete_user_by_id(
+<<<<<<< HEAD
     user_id: int, request:Request, 
     db: Session = Depends(get_db),
+=======
+    user_id: int, 
+    request:Request, db: Session = Depends(get_db),
+>>>>>>> 75da6e8 (fix code)
     current_user: str = Depends(get_current_user)
     ):
     
