@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from src.messaging.application.MessageSender import MessageSender
 from src.messaging.infrastructure.MySqlMessageRepository import MySqlMessageRepository
 from src.messaging.infrastructure.WhatsAppService import WhatsAppService  # Importamos el servicio
 from config.database import get_db
+from slowapi.util import get_remote_address
+from slowapi import Limiter
 from src.messaging.domain.exceptions import MessageSendingException
 from datetime import datetime
+
+limiter= Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 
@@ -29,7 +33,8 @@ class MessageResponseModel(BaseModel):
         from_attributes = True  # Habilitar para que funcione con ORMs
 
 @router.post("/api/v1/send-payment-confirmation", response_model=MessageResponseModel)
-def send_payment_confirmation(message_data: PaymentConfirmationModel, db: Session = Depends(get_db)):
+@limiter.limit("2/minute")  
+def send_payment_confirmation(message_data: PaymentConfirmationModel,request:Request, db: Session = Depends(get_db)):
     message_repo = MySqlMessageRepository(db)
     whatsapp_service = WhatsAppService()  # Crear instancia del servicio
     message_sender = MessageSender(message_repo, whatsapp_service)

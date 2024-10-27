@@ -3,12 +3,17 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from src.routes import router
 
 # Cargar las variables del archivo .env
 load_dotenv()
 
 app = FastAPI()
+
+# Inicializar el limitador
+limiter = Limiter(key_func=get_remote_address)
 
 # Configuración de CORS (si es necesario)
 origins = ["http://localhost", "https://localhost"]  # Ajusta según necesites
@@ -19,6 +24,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Registrar el limitador como middleware
+app.state.limiter = limiter
 
 # Registrar las rutas
 app.include_router(router)
