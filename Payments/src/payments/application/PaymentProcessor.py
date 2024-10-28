@@ -1,21 +1,19 @@
 from src.payments.domain.PaymentRepository import PaymentRepository
-from src.users.domain.UserRepository import UserRepository
 from src.payments.domain.Payment import Payment
 from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
-from src.users.domain.exceptions import UserNotFoundException
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
 import os
 
 class PaymentProcessor:
-    def __init__(self, payment_repository: PaymentRepository, user_repository: UserRepository, mercado_pago_service: MercadoPagoService):
+    def __init__(self, payment_repository: PaymentRepository, mercado_pago_service: MercadoPagoService):
         self.payment_repository = payment_repository
-        self.user_repository = user_repository
         self.mercado_pago_service = mercado_pago_service
 
     def create_payment(self, user_id: int, items: list, payer: dict, description: str = None):
         user = self.user_repository.find_by_id(user_id)
         if not user:
-            raise UserNotFoundException(f"User with id {user_id} does not exist")
+            ### CAMBIAR EXEPCION A EL CORRESPONDIENTE   ###
+            raise PaymentNotFoundException(f"User with id {user_id} does not exist")
 
         amount = sum(item['unit_price'] * item['quantity'] for item in items)
         currency_id = items[0]['currency_id'] if items else 'MXN'

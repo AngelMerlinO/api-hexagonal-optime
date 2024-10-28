@@ -2,11 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
-from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
-from src.messaging.application.MessageSender import MessageSender  # Asegúrate de importar MessageSender correctamente
-from src.messaging.infrastructure.MySqlMessageRepository import MySqlMessageRepository
-from src.messaging.infrastructure.WhatsAppService import WhatsAppService  # Asegúrate de importar WhatsAppService correctamente
 from config.database import get_db
 from pydantic import BaseModel
 from typing import List, Optional
@@ -37,9 +33,8 @@ async def create_payment(
     db: Session = Depends(get_db)
 ):
     payment_repo = MySqlPaymentRepository(db)
-    user_repo = MySqlUserRepository(db)
     mercado_pago_service = MercadoPagoService()
-    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
+    payment_processor = PaymentProcessor(payment_repo, mercado_pago_service)
 
     try:
         result = payment_processor.create_payment(
@@ -55,14 +50,9 @@ async def create_payment(
 @router.post("/notifications")
 async def receive_notifications(request: Request, db: Session = Depends(get_db)):
     payment_repo = MySqlPaymentRepository(db)
-    user_repo = MySqlUserRepository(db)
     mercado_pago_service = MercadoPagoService()
-    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
+    payment_processor = PaymentProcessor(payment_repo, mercado_pago_service)
 
-    # Repositorio y servicio de mensajería
-    message_repo = MySqlMessageRepository(db)
-    whatsapp_service = WhatsAppService()  # Crear instancia del servicio de WhatsApp
-    message_sender = MessageSender(message_repo, whatsapp_service)
 
     try:
         # Obtener la notificación de Mercado Pago
@@ -103,9 +93,8 @@ async def payment_return(request: Request, db: Session = Depends(get_db)):
     preference_id = query_params.get("preference_id")
 
     payment_repo = MySqlPaymentRepository(db)
-    user_repo = MySqlUserRepository(db)
     mercado_pago_service = MercadoPagoService()
-    payment_processor = PaymentProcessor(payment_repo, user_repo, mercado_pago_service)
+    payment_processor = PaymentProcessor(payment_repo, mercado_pago_service)
 
     if payment_id:
         try:
