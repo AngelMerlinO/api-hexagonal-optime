@@ -8,10 +8,7 @@ class NotificationCreator:
         self.notification_repository = notification_repository
 
     def create(self, user_id: int, title: str, message: str, type: str, link: str = None):
-        user = self.user_repository.find_by_id(user_id)
-        if not user:
-            ###   corregir Exception para que sea de usuario no encontrado  ###
-            raise InvalidNotificationTypeException(f"User with id {user_id} does not exist") 
+        
 
         if type not in NotificationType.__members__:
             raise InvalidNotificationTypeException(f"Invalid notification type: {type}")

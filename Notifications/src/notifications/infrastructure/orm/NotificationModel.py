@@ -22,7 +22,7 @@ class NotificationModel(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
     type = Column(Enum(NotificationTypeEnum), nullable=False)
@@ -34,7 +34,6 @@ class NotificationModel(Base):
     
     timestamps = composite(Timestamps, created_at, updated_at, deleted_at)
 
-    user = relationship('UserModel', back_populates='notifications')
 
     def __repr__(self):
         return f"<NotificationModel {self.title} to User {self.user_id}>"
