@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from src.notifications.application.NotificationCreator import NotificationCreator
 from src.notifications.infrastructure.MySqlNotificationRepository import MySqlNotificationRepository
-from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.notifications.application.NotificationUpdater import NotificationUpdater
 from src.notifications.application.NotificationEliminator import NotificationEliminator
 from src.auth.jwt_handler import get_current_user
@@ -13,7 +12,6 @@ from config.database import get_db
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import Query
-from src.users.domain.exceptions import UserNotFoundException
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 
 limiter = Limiter(key_func=get_remote_address)
@@ -54,8 +52,7 @@ def create_notification(
     ):
     
     notification_repo = MySqlNotificationRepository(db)
-    user_repo = MySqlUserRepository(db)
-    notification_creator = NotificationCreator(notification_repo, user_repo)
+    notification_creator = NotificationCreator(notification_repo,)
     try:
         notification = notification_creator.create(
             notification_data.user_id,
@@ -65,7 +62,8 @@ def create_notification(
             notification_data.link
         )
         return {"message": "Notification created successfully", "notification_id": notification.id}
-    except UserNotFoundException as e:
+    ### corregir Exception para que sea de usuario no encontrado    ##
+    except InvalidNotificationTypeException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except InvalidNotificationTypeException as e:
         raise HTTPException(status_code=400, detail=str(e))
