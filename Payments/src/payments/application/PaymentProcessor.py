@@ -10,11 +10,7 @@ class PaymentProcessor:
         self.mercado_pago_service = mercado_pago_service
 
     def create_payment(self, user_id: int, items: list, payer: dict, description: str = None):
-        user = self.user_repository.find_by_id(user_id)
-        if not user:
-            ### CAMBIAR EXEPCION A EL CORRESPONDIENTE   ###
-            raise PaymentNotFoundException(f"User with id {user_id} does not exist")
-
+       
         amount = sum(item['unit_price'] * item['quantity'] for item in items)
         currency_id = items[0]['currency_id'] if items else 'MXN'
 
