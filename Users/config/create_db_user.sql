@@ -1,11 +1,8 @@
--- Crear la base de datos
-CREATE DATABASE IF NOT EXISTS optime;
+-- Crear la base de datos si no existe
+CREATE DATABASE optimeusers;
 
 -- Crear el usuario y asignar la contraseña
-CREATE USER IF NOT EXISTS 'optimeroot'@'localhost' IDENTIFIED BY 'optimetest';
+CREATE USER optimeroot WITH PASSWORD 'optimetest';
 
--- Otorgar todos los privilegios al usuario sobre la base de datos optime
-GRANT ALL PRIVILEGES ON optime.* TO 'optimeroot'@'localhost';
-
--- Aplicar los cambios de privilegios
-FLUSH PRIVILEGES;
+-- Otorgar todos los privilegios al usuario sobre la base de datos
+GRANT ALL PRIVILEGES ON DATABASE optimeusers TO optimeroot;

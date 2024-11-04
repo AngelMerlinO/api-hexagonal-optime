@@ -1,7 +1,7 @@
 """create_contact_table
 
 Revision ID: e7eb989d1db7
-Revises: d4661526e5ea
+Revises: d0e032aa4973
 Create Date: 2024-10-16 22:16:39.235341
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
 revision: str = 'e7eb989d1db7'
-down_revision: Union[str, None] = 'd4661526e5ea'
+down_revision: Union[str, None] = 'd0e032aa4973'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column('email', sa.String(length=100), nullable=False),
         sa.Column('phone', sa.String(length=20), nullable=False, unique=True),
         sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
-        sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
+        sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
         sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )

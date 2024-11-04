@@ -1,84 +1,91 @@
 from src.notifications.domain.NotificationRepository import NotificationRepository
-from src.notifications.infrastructure.orm.NotificationModel import NotificationModel
 from src.notifications.domain.Notification import Notification, NotificationType, NotificationStatus
-from sqlalchemy.orm import Session
+from pymongo.collection import Collection
 from typing import List
+from bson.objectid import ObjectId
+from datetime import datetime, timezone
 
-class MySqlNotificationRepository(NotificationRepository):
-    def __init__(self, db_session: Session):
-        self.db_session = db_session
+class MongoNotificationRepository(NotificationRepository):
+    def __init__(self, db_collection: Collection):
+        self.collection = db_collection
 
     def save(self, notification: Notification):
-        notification_model = NotificationModel(
-            uuid=notification.uuid,
-            user_id=notification.user_id,
-            title=notification.title,
-            message=notification.message,
-            type=notification.type.value,
-            status=notification.status.value,
-            link=notification.link
-        )
-        self.db_session.add(notification_model)
-        self.db_session.commit()
-        self.db_session.refresh(notification_model)
-
-        notification.id = notification_model.id
+        notification_data = {
+            "uuid": notification.uuid,
+            "user_id": notification.user_id,
+            "title": notification.title,
+            "message": notification.message,
+            "type": notification.type.value,
+            "status": notification.status.value,
+            "link": notification.link,
+            "created_at": (notification.created_at or datetime.now()).astimezone(timezone.utc),
+            "updated_at": None,
+            "deleted_at": None,
+        }
+        result = self.collection.insert_one(notification_data)
+        notification.id = str(result.inserted_id)
         return notification
 
-    def find_by_id(self, notification_id: int) -> Notification:
-        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification_id).first()
-        if not notification_model:
+    def find_by_id(self, notification_id: str) -> Notification:
+        # Buscar un documento por ID en MongoDB
+        notification_data = self.collection.find_one({"_id": ObjectId(notification_id)})
+        if not notification_data:
             raise ValueError(f"Notification with ID {notification_id} not found")
-        
+
         return Notification(
-            id=notification_model.id,
-            uuid=notification_model.uuid,
-            user_id=notification_model.user_id,
-            title=notification_model.title,
-            message=notification_model.message,
-            type=NotificationType(notification_model.type.name), 
-            status=NotificationStatus(notification_model.status.name),
-            link=notification_model.link
+            id=str(notification_data["_id"]),
+            uuid=notification_data["uuid"],
+            user_id=notification_data["user_id"],
+            title=notification_data["title"],
+            message=notification_data["message"],
+            type=NotificationType(notification_data["type"]),
+            status=NotificationStatus(notification_data["status"]),
+            link=notification_data.get("link"),
+            created_at=notification_data.get("created_at", datetime.now().astimezone(timezone.utc)),
+            updated_at=notification_data.get("updated_at", datetime.now().astimezone(timezone.utc)),
+            deleted_at=notification_data.get("deleted_at")
         )
 
     def find_by_user_id(self, user_id: int) -> List[Notification]:
-        notification_models = self.db_session.query(NotificationModel).filter_by(user_id=user_id).all()
-
+        # Buscar documentos por user_id en MongoDB
+        notification_models = self.collection.find({"user_id": user_id})
+        
         notifications = [
             Notification(
-                id=notification_model.id,
-                uuid=notification_model.uuid,
-                user_id=notification_model.user_id,
-                title=notification_model.title,
-                message=notification_model.message,
-                type=NotificationType(notification_model.type),
-                status=NotificationStatus(notification_model.status),
-                link=notification_model.link
+                id=str(notification["_id"]),
+                uuid=notification["uuid"],
+                user_id=notification["user_id"],
+                title=notification["title"],
+                message=notification["message"],
+                type=NotificationType(notification["type"]),
+                status=NotificationStatus(notification["status"]),
+                link=notification.get("link"),
+                created_at=notification.get("created_at", datetime.now().astimezone(timezone.utc)),
+                updated_at=notification.get("updated_at", datetime.now().astimezone(timezone.utc)),
+                deleted_at=notification.get("deleted_at")
             )
-            for notification_model in notification_models
+            for notification in notification_models
         ]
 
         return notifications
 
     def update(self, notification: Notification):
-        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification.id).first()
-        if not notification_model:
+        result = self.collection.update_one(
+            {"_id": ObjectId(notification.id)},
+            {"$set": {
+                "title": notification.title,
+                "message": notification.message,
+                "type": notification.type.value,
+                "status": notification.status.value,
+                "link": notification.link,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+        if result.matched_count == 0:
             raise ValueError(f"Notification with ID {notification.id} not found")
-        
-        notification_model.title = notification.title
-        notification_model.message = notification.message
-        notification_model.type = notification.type.value
-        notification_model.status = notification.status.value
-        notification_model.link = notification.link
-
-        self.db_session.commit()
-        self.db_session.refresh(notification_model)
         return notification
 
     def delete(self, notification: Notification):
-        notification_model = self.db_session.query(NotificationModel).filter_by(id=notification.id).first()
-        if not notification_model:
+        result = self.collection.delete_one({"_id": ObjectId(notification.id)})
+        if result.deleted_count == 0:
             raise ValueError(f"Notification with ID {notification.id} not found")
-        
-        self.db_session.delete(notification_model)
-        self.db_session.commit()

@@ -1,35 +1,33 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from pymongo import MongoClient
 from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker, declarative_base
+from urllib.parse import quote_plus
 
-# Definir Base
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv("config/.env", encoding="utf-8")
+
 Base = declarative_base()
 
-# Cargar las variables del archivo .env si existe
-load_dotenv()
+# Leer las variables de entorno para la conexión a MongoDB
+MONGO_HOST = os.getenv('MONGO_HOST', 'localhost')
+MONGO_PORT = os.getenv('MONGO_PORT', '27017')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 
-# Leer las variables de entorno
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Codificar el usuario y la contraseña si contienen caracteres especiales
+DB_USER_ENCODED = quote_plus(DB_USER) if DB_USER else ''
+DB_PASSWORD_ENCODED = quote_plus(DB_PASSWORD) if DB_PASSWORD else ''
 
-# Si no se encuentra DATABASE_URL, se intenta construir para MySQL
-if not DATABASE_URL:
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_HOST = os.getenv('DB_HOST')
-    DB_NAME = os.getenv('DB_NAME')
-    DB_PORT = os.getenv('DB_PORT')
-    
-    # Construir la URL de MySQL
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Construir la URL de conexión para MongoDB
+DATABASE_URL = f"mongodb://{DB_USER_ENCODED}:{DB_PASSWORD_ENCODED}@{MONGO_HOST}:{MONGO_PORT}/{DB_NAME}"
 
-# Crear el engine y la sesión de SQLAlchemy
-engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Conectar a MongoDB
+client = MongoClient(DATABASE_URL)
+db = client[DB_NAME]
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Función para obtener la base de datos
+def get_mongo_collection():
+    return db['notifications']
+

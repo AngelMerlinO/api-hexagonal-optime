@@ -1,8 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, Enum, ForeignKey, DateTime
-from sqlalchemy.orm import relationship, composite
+from sqlalchemy import Column, Integer, String, Text, Enum, DateTime
 from sqlalchemy.sql import func
 from config.database import Base
-from src.notifications.domain.Timestamp import Timestamps
 import enum
 import uuid
 
@@ -30,10 +28,7 @@ class NotificationModel(Base):
     link = Column(String(255), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())
     updated_at = Column(DateTime, nullable=False, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
-    deleted_at = Column(DateTime, nullable=True)
-    
-    timestamps = composite(Timestamps, created_at, updated_at, deleted_at)
-
+    deleted_at = Column(DateTime, nullable=True, default=None)
 
     def __repr__(self):
         return f"<NotificationModel {self.title} to User {self.user_id}>"

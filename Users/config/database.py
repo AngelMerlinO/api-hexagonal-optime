@@ -3,27 +3,27 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
-# Definir Base
+# Cargar el archivo .env
+load_dotenv("config/.env", encoding="utf-8")
+
+# Definir la base
 Base = declarative_base()
 
-# Cargar las variables del archivo .env si existe
-load_dotenv()
-
-# Leer las variables de entorno
+# Intentar cargar DATABASE_URL directamente
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-# Si no se encuentra DATABASE_URL, se intenta construir para MySQL
+# Si DATABASE_URL no está configurado, construirla manualmente
 if not DATABASE_URL:
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_HOST = os.getenv('DB_HOST')
-    DB_NAME = os.getenv('DB_NAME')
-    DB_PORT = os.getenv('DB_PORT')
-    
-    # Construir la URL de MySQL
-    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DB_USERPG = os.getenv('DB_USERPG')
+    DB_PASSWORDPG = os.getenv('DB_PASSWORDPG')
+    DB_HOSTPG = os.getenv('DB_HOSTPG')
+    DB_PORTPG = os.getenv('DB_PORTPG')
+    DB_NAMEPG = os.getenv('DB_NAMEPG')
 
-# Crear el engine y la sesión de SQLAlchemy
+    # Construir DATABASE_URL
+    DATABASE_URL = f"postgresql://{DB_USERPG}:{DB_PASSWORDPG}@{DB_HOSTPG}:{DB_PORTPG}/{DB_NAMEPG}"
+
+# Crear el engine y la sesión
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

@@ -22,10 +22,6 @@ class UserModel(Base):
     
     timestamps = composite(Timestamps, created_at, updated_at, deleted_at)
     
-    schedules = relationship('ScheduleModel', back_populates='user')
-    notifications = relationship('NotificationModel', back_populates='user')
-    activities = relationship('ActivitiesModel', back_populates='user')
-    payments = relationship('PaymentModel', back_populates='user')
     contacts = relationship('ContactModel', back_populates='user')
 
 
