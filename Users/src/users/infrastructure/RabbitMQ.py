@@ -1,9 +1,9 @@
-# Users/src/users/infrastructure/RabbitMQPublisher.py
+# Users/src/users/infrastructure/RabbitMQ.py
 import pika
 import json
 from src.users.domain.EventPublisher import EventPublisher
 
-class RabbitMQPublisher(EventPublisher):
+class RabbitMQ(EventPublisher):
     def __init__(self, host='34.236.102.207', queue='user_created_queue', username='usuario', password='password'):
         self.host = host
         self.queue = queue
@@ -31,6 +31,7 @@ class RabbitMQPublisher(EventPublisher):
             body=json.dumps(message),
             properties=pika.BasicProperties(delivery_mode=2)  # Hacer el mensaje persistente
         )
+        #funcion de escucha 
     
     def close(self):
         # Cerrar la conexión cuando ya no sea necesario

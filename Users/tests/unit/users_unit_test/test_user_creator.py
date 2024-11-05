@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock
-from src.users.application.UserCreator import UserCreator
+from Users.src.users.application.useCases.UserCreatorUseCase import UserCreator
 from src.contact.domain.exceptions import ContactNotFoundException
 
 

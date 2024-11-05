@@ -1,3 +1,5 @@
+# Users/src/users/application/useCases/UserUpdater.py
+
 from src.users.domain.UserRepository import UserRepository
 from src.users.domain.User import User
 
@@ -11,11 +13,10 @@ class UserUpdater:
         if not user:
             raise ValueError(f"User with ID {identifier} not found.")
 
-        if username:
-            user.username = username
-        if email:
-            user.email = email
-        if password:
-            user.password = password
-
-        self.user_repository.update(user)
+        # Actualizar los valores si se proporcionan
+        self.user_repository.update_by_id(
+            id=int(identifier),
+            username=username if username else user.username,
+            email=email if email else user.email,
+            password=password if password else user.password
+        )

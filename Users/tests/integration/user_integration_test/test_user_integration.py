@@ -1,5 +1,5 @@
 from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
-from src.users.application.UserCreator import UserCreator
+from Users.src.users.application.useCases.UserCreatorUseCase import UserCreator
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
 from src.users.domain.User import User
 
