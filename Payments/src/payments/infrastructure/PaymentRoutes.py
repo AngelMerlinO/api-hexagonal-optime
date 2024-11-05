@@ -69,18 +69,7 @@ async def receive_notifications(request: Request, db: Session = Depends(get_db))
         currency = payment.currency_id
         payment_id = payment.payment_id
 
-        # Llamamos al servicio de mensajería para enviar el mensaje de confirmación de pago
-        print(f"Sending WhatsApp message to {recipient_phone_number}")
-        message = message_sender.send_payment_confirmation(
-            recipient_phone_number=recipient_phone_number,
-            status=status,
-            amount=amount,
-            currency=currency,
-            payment_id=payment_id
-        )
-        print(f"WhatsApp message sent successfully: {message}")
-
-        return {"status": "success", "message_id": message.id}
+        return {"status": "-", "message_id": payment.payment_id}
     except Exception as e:
         print(f"Error processing notification: {e}")
         raise HTTPException(status_code=400, detail=str(e))
