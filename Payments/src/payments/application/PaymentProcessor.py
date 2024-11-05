@@ -2,15 +2,17 @@ from src.payments.domain.PaymentRepository import PaymentRepository
 from src.payments.domain.Payment import Payment
 from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
+from src.payments.domain.EventPublisher import EventPublisher
+
 import os
 
 class PaymentProcessor:
-    def __init__(self, payment_repository: PaymentRepository, mercado_pago_service: MercadoPagoService):
+    def __init__(self, payment_repository: PaymentRepository, mercado_pago_service: MercadoPagoService, publisher: EventPublisher):
         self.payment_repository = payment_repository
         self.mercado_pago_service = mercado_pago_service
+        self.publisher = publisher
 
     def create_payment(self, user_id: int, items: list, payer: dict, description: str = None):
-       
         amount = sum(item['unit_price'] * item['quantity'] for item in items)
         currency_id = items[0]['currency_id'] if items else 'MXN'
 
@@ -50,7 +52,7 @@ class PaymentProcessor:
 
         except Exception as e:
             raise PaymentProcessingException(f"Error creating payment: {str(e)}")
-
+        
     def process_notification(self, data: dict):
         topic = data.get("topic") or data.get("type")
         payment_id = data.get('data', {}).get('id')
@@ -78,7 +80,7 @@ class PaymentProcessor:
         if not payment:
             payment_data = self.mercado_pago_service.get_payment_data(payment_id)
             payment = Payment(
-                user_id=1,  # You need to extract the real user_id from the payment_data if necessary
+                user_id=1,  # Aquí deberías obtener el `user_id` correcto
                 preference_id=payment_data.get('preference_id'),
                 payment_id=payment_data.get('id'),
                 amount=payment_data.get('transaction_amount'),
