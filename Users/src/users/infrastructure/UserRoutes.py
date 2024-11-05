@@ -8,6 +8,7 @@ from src.users.infrastructure.MySqlUserRepository import MySqlUserRepository
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
 from src.auth.jwt_handler import create_access_token
 from src.auth.jwt_handler import get_current_user
+from src.users.infrastructure.RabbitMQPublisher import RabbitMQPublisher
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.auth.jwt_handler import create_access_token
@@ -90,17 +91,19 @@ def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/")
-@limiter.limit("2/minute")  
-def create_user(user: UserCreate,request:Request, db: Session = Depends(get_db)):
+def create_user( user: UserCreate, db: Session = Depends(get_db)):
     repo = MySqlUserRepository(db)
     contact_repo = MySqlContactRepository(db)
-    user_creator = UserCreator(repo, contact_repo)
+    publisher = RabbitMQPublisher(host='34.236.102.207', username='usuario', password='password')
+    user_creator = UserCreator(repo, contact_repo, publisher)
+    
     try:
-        user_creator.create(user.contact_id,user.username, user.email, user.password)
+        user_creator.create(user.contact_id, user.username, user.email, user.password)
         return {"message": "User created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
+    finally:
+        publisher.close()  # Cerrar la conexión a RabbitMQ
 @router.put("/{user_id}")
 @limiter.limit("2/minute")  
 def update_user_by_id(
