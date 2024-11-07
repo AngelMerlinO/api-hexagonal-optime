@@ -10,6 +10,8 @@ class ContactModel(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(100), nullable=False)
+    name = Column(String(255), nullable=True)
+    last_name = Column(String(255), nullable=True)
     phone = Column(String(20), nullable=False, unique=True)
     created_at = Column(DateTime, server_default=func.current_timestamp(), nullable=False)
     updated_at = Column(DateTime, server_default=func.current_timestamp(), nullable=False, onupdate=func.current_timestamp())

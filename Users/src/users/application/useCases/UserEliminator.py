@@ -1,5 +1,3 @@
-# Users/src/users/application/useCases/UserEliminator.py
-
 from src.users.domain.UserRepository import UserRepository
 
 class UserEliminator:
@@ -12,5 +10,4 @@ class UserEliminator:
         if not user:
             raise ValueError(f"User with ID {identifier} not found.")
 
-        # Llamar a `delete_by_id` en lugar de `delete`
         self.user_repository.delete_by_id(int(identifier))

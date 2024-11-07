@@ -15,13 +15,13 @@ class MySqlContactRepository(ContactRepository):
         self.db_session.refresh(contact)
         return contact
     
-    def find_by_email_or_phone(self, email: str, phone: str) -> Optional[ContactModel]:
+    def find_by_email_or_phone(self, email: str, phone: str, name: str, last_name: str) -> Optional[ContactModel]:
         """Busca un contacto por email o teléfono."""
         return self.db_session.query(ContactModel).filter(
-            (ContactModel.email == email) | (ContactModel.phone == phone)
+            (ContactModel.email == email) | (ContactModel.phone == phone) | (ContactModel.name == name) | (ContactModel.last_name == last_name)
         ).first()
     
-    def update_by_id(self, contact_id: int, email: Optional[str], phone: Optional[str]) -> None:
+    def update_by_id(self, contact_id: int, email: Optional[str], phone: Optional[str], name: Optional[str], last_name: Optional[str]):
         """Actualiza un contacto en la base de datos por su ID."""
         contact_model = self.db_session.query(ContactModel).filter_by(id=contact_id).first()
         if not contact_model:
@@ -31,6 +31,10 @@ class MySqlContactRepository(ContactRepository):
             contact_model.email = email
         if phone:
             contact_model.phone = phone
+        if name:
+            contact_model.name = name
+        if last_name:
+            contact_model.last_name = last_name
         self.db_session.commit()
     
     def find_by_id(self, contact_id: int) -> Optional[ContactModel]:
@@ -48,6 +52,8 @@ class MySqlContactRepository(ContactRepository):
             Contact(
                 id=contact_model.id,
                 email=contact_model.email,
+                name=contact_model.name,
+                last_name=contact_model.last_name,
                 phone=contact_model.phone,
                 created_at=contact_model.created_at,
                 updated_at=contact_model.updated_at,

@@ -1,4 +1,3 @@
-# Users/src/users/application/UserCreator.py
 import uuid
 from src.users.domain.UserRepository import UserRepository
 from src.contact.domain.ContactRepository import ContactRepository
@@ -9,12 +8,11 @@ class UserCreator:
         self.user_repository = user_repository
         self.contact_repository = contact_repository
 
-    def create(self, contact_id: int, username: str, email: str, password: str) -> User:
+    def create(self, contact_id: int, username: str, password: str) -> User:
         new_user = User(
             uuid=str(uuid.uuid4()),
             contact_id=contact_id,
             username=username, 
-            email=email, 
             password=password
         )
         

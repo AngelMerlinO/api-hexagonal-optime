@@ -13,7 +13,6 @@ class UserModel(Base):
     uuid = Column(String(36), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
     contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=False)
     username = Column(String(100), nullable=False)
-    email = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
     verify_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.current_timestamp())

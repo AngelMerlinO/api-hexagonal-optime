@@ -9,7 +9,7 @@ class ContactRepository(ABC):
         pass
 
     @abstractmethod
-    def update_by_id(self, contact_id: int, email: Optional[str], phone: Optional[str]):
+    def update_by_id(self, contact_id: int, email: Optional[str], phone: Optional[str], name: Optional[str], last_name: Optional[str]):
         """Actualiza los datos de un contacto por su ID."""
         pass
 

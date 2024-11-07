@@ -1,20 +1,20 @@
 from src.contact.domain.ContactRepository import ContactRepository
-from src.contact.domain.ContactNotificationService import ContactNotificationService
+# from src.contact.domain.ContactNotificationService import ContactNotificationService
 from src.contact.domain.exceptions import ContactAlreadyExistsException, InvalidContactDataException
 from src.contact.infraestructure.orm.ContactModel import ContactModel
 
 class ContactCreator:
-    def __init__(self, contact_repository: ContactRepository, notification_service: ContactNotificationService):
+    def __init__(self, contact_repository: ContactRepository):
         self.contact_repository = contact_repository
-        self.notification_service = notification_service
 
     def create(
         self,
         email: str,
+        name: str,
+        last_name: str,
         phone: str
     ) -> ContactModel:
-        # Reglas de negocio: validar si el contacto ya existe
-        existing_contact = self.contact_repository.find_by_email_or_phone(email, phone)
+        existing_contact = self.contact_repository.find_by_email_or_phone(email, phone, name, last_name)
         if existing_contact:
             raise ContactAlreadyExistsException(f"Contact with email '{email}' or phone '{phone}' already exists")
 
@@ -27,13 +27,15 @@ class ContactCreator:
         # Crear el nuevo contacto
         new_contact_model = ContactModel(
             email=email,
+            name=name,
+            last_name=last_name,
             phone=phone
         )
 
         self.contact_repository.save(new_contact_model)
 
         # Notificar la creación del contacto al servicio externo a través del puerto
-        self.notification_service.notify_contact_creation(new_contact_model.id, new_contact_model.email)
+        # self.notification_service.notify_contact_creation(new_contact_model.id, new_contact_model.email)
 
         return new_contact_model
 

@@ -18,8 +18,7 @@ router = APIRouter(
 class UserCreate(BaseModel):
     contact_id: int
     username: str
-    email: EmailStr
-    password: constr(min_length=8, max_length=16)
+    password: constr(min_length=8, max_length=16) # type: ignore
 
     @validator('password')
     def no_spaces_in_password(cls, value):
@@ -35,8 +34,7 @@ class UserLogin(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[constr(min_length=8, max_length=16)] = None
+    password: Optional[constr(min_length=8, max_length=16)] = None # type: ignore
 
     @validator('password')
     def no_spaces_in_password(cls, value):
@@ -49,19 +47,19 @@ class UserUpdate(BaseModel):
 @router.post("/")
 @limiter.limit("5/minute")
 def create_user(
-    request: Request,  # Mueve `request` al primer lugar
+    request: Request,
     user: UserCreate,
     user_service=Depends(get_user_service)
 ):
     try:
-        user_service.create_user(user.contact_id, user.username, user.email, user.password)
-        return {"message": "User created successfully"}
+        created_user = user_service.create_user(user.contact_id, user.username, user.password)
+        return created_user
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/login")
 def login(
-    request: Request,  # Mueve `request` al primer lugar
+    request: Request,
     user: UserLogin,
     db: Session = Depends(get_db)
 ):
@@ -75,7 +73,7 @@ def login(
 @router.get("/{user_id}")
 @limiter.limit("5/minute")
 def find_user_by_id(
-    request: Request,  # Mueve `request` al primer lugar
+    request: Request,
     user_id: int,
     user_service=Depends(get_user_service),
     current_user: str = Depends(get_current_user)
@@ -103,7 +101,6 @@ def update_user_by_id(
         user_service.update_user(
             identifier=user_id,
             username=user.username,
-            email=user.email,
             password=user.password
         )
         return {"message": "User updated successfully"}

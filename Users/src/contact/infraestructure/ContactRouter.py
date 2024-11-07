@@ -1,17 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from src.contact.application.ContactCreator import ContactCreator
+from src.contact.application.useCases.ContactCreator import ContactCreator
 from src.contact.infraestructure.MySqlContactRepository import MySqlContactRepository
-from src.contact.infraestructure.HttpContactNotificationService import HttpContactNotificationService
 from slowapi.util import get_remote_address
 from slowapi import Limiter
 from config.database import get_db
 from pydantic import BaseModel
-
 from src.contact.domain.exceptions import ContactAlreadyExistsException, InvalidContactDataException
-import os
-from dotenv import load_dotenv
-
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -23,22 +18,22 @@ router = APIRouter(
 class ContactCreate(BaseModel):
     email: str
     phone: str
-
-
-LAMBDA_URL = os.getenv("AWS_ACCESS_CREATE_OPT")
+    name: str
+    last_name: str
 
 @router.post("/")
 @limiter.limit("2/minute")  
-def create_contact(contact_data: ContactCreate, request:Request, db: Session = Depends(get_db)):
+def create_contact(contact_data: ContactCreate, request: Request, db: Session = Depends(get_db)):
     contact_repo = MySqlContactRepository(db)
-    notification_service = HttpContactNotificationService(lambda_url=LAMBDA_URL)  # Inyectar el servicio de notificación
-    
-    contact_creator = ContactCreator(contact_repo, notification_service)
+
+    contact_creator = ContactCreator(contact_repo)
     
     try:
         contact_model = contact_creator.create(
             email=contact_data.email, 
-            phone=contact_data.phone
+            phone=contact_data.phone,
+            name=contact_data.name,
+            last_name=contact_data.last_name
         )
         
         return {"message": "Contact created successfully", "contact_id": contact_model.id}
@@ -50,4 +45,4 @@ def create_contact(contact_data: ContactCreate, request:Request, db: Session = D
         raise HTTPException(status_code=400, detail=str(e))
     
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))

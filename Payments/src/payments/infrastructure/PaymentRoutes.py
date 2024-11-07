@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from src.payments.application.PaymentProcessor import PaymentProcessor
+from Payments.src.payments.application.PaymentProcessor import PaymentProcessor
 from src.payments.infrastructure.MySqlPaymentRepository import MySqlPaymentRepository
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
 from src.payments.infrastructure.RabbitMQPaymentPublisher import RabbitMQPaymentPublisher

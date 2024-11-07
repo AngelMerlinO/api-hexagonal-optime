@@ -80,7 +80,7 @@ class PaymentProcessor:
         if not payment:
             payment_data = self.mercado_pago_service.get_payment_data(payment_id)
             payment = Payment(
-                user_id=1,  # Aquí deberías obtener el `user_id` correcto
+                user_id=1,
                 preference_id=payment_data.get('preference_id'),
                 payment_id=payment_data.get('id'),
                 amount=payment_data.get('transaction_amount'),
