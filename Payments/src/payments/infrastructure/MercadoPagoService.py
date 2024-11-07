@@ -8,6 +8,7 @@ class MercadoPagoService:
     def create_preference(self, preference_data: dict):
         try:
             preference_response = self.sdk.preference().create(preference_data)
+            #print("xxxx",preference_data)
             return preference_response["response"]
         except Exception as e:
             raise Exception(f"Error creating MercadoPago preference: {str(e)}")
@@ -15,6 +16,7 @@ class MercadoPagoService:
     def get_payment_data(self, payment_id: str):
         try:
             payment_response = self.sdk.payment().get(payment_id)
+            ##print("hola mundo :", payment_response.get("response"))
             return payment_response.get("response")
         except Exception as e:
             raise Exception(f"Error getting MercadoPago payment data: {str(e)}")

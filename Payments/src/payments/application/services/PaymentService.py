@@ -3,19 +3,20 @@ from src.payments.domain.Payment import Payment
 from src.payments.domain.exceptions import PaymentProcessingException, PaymentNotFoundException
 from src.payments.infrastructure.MercadoPagoService import MercadoPagoService
 from src.payments.domain.EventPublisher import EventPublisher
-
 import os
 
-class PaymentProcessor:
+class PaymentService:
     def __init__(self, payment_repository: PaymentRepository, mercado_pago_service: MercadoPagoService, publisher: EventPublisher):
         self.payment_repository = payment_repository
         self.mercado_pago_service = mercado_pago_service
         self.publisher = publisher
 
     def create_payment(self, user_id: int, items: list, payer: dict, description: str = None):
+        # Calcula el monto total y la moneda
         amount = sum(item['unit_price'] * item['quantity'] for item in items)
         currency_id = items[0]['currency_id'] if items else 'MXN'
 
+        # Crea el registro de pago inicial en la base de datos con preference_id vacío
         payment = Payment(
             user_id=user_id,
             preference_id='',
@@ -23,8 +24,9 @@ class PaymentProcessor:
             currency_id=currency_id,
             description=description
         )
-        self.payment_repository.save(payment)
+        self.payment_repository.save(payment)  # Guarda el pago inicial sin preference_id
 
+        # Genera la preferencia en Mercado Pago
         base_url = os.getenv('BASE_URL')
         preference_data = {
             "items": items,
@@ -41,8 +43,11 @@ class PaymentProcessor:
         }
 
         try:
+            # Llama al servicio de Mercado Pago y obtiene el `preference_id`
             preference = self.mercado_pago_service.create_preference(preference_data)
-            payment.preference_id = preference['id']
+            payment.preference_id = preference.get("id")
+            
+            # Actualiza el pago en el repositorio con el `preference_id`
             self.payment_repository.update(payment)
 
             return {
@@ -58,26 +63,36 @@ class PaymentProcessor:
         payment_id = data.get('data', {}).get('id')
 
         if topic == "payment" and payment_id:
+            # Obtén los datos del pago desde Mercado Pago
             payment_data = self.mercado_pago_service.get_payment_data(payment_id)
 
+            # Busca el pago en la base de datos usando `external_reference` (ID del pago local)
             payment = self.payment_repository.find_by_id(int(payment_data.get("external_reference")))
             if not payment:
                 raise PaymentNotFoundException("Payment not found in database")
 
+            # Actualiza los detalles del pago con la información recibida en la notificación
             payment.payment_id = payment_data.get("id")
             payment.status = payment_data.get("status")
             payment.status_detail = payment_data.get("status_detail")
             payment.date_created = payment_data.get("date_created")
             payment.currency_id = payment_data.get("currency_id")
 
+            # Guarda los cambios en el repositorio
             self.payment_repository.update(payment)
+
+            # Publica en la cola de RabbitMQ con los datos actualizados del pago
+            self._publish_payment_update(payment)
+
             return payment
         else:
             return {"status": "ignored"}
 
     def get_payment_status(self, payment_id: str):
+        # Busca el estado del pago en la base de datos
         payment = self.payment_repository.find_by_payment_id(payment_id)
         if not payment:
+            # Si no se encuentra, busca la información directamente en Mercado Pago
             payment_data = self.mercado_pago_service.get_payment_data(payment_id)
             payment = Payment(
                 user_id=1,  # Aquí deberías obtener el `user_id` correcto
@@ -92,3 +107,27 @@ class PaymentProcessor:
             )
             self.payment_repository.save(payment)
         return payment
+
+    def _publish_payment_update(self, payment: Payment):
+        """Publica un mensaje a la cola de RabbitMQ con los detalles del pago solo cuando los datos clave están completos."""
+        # Construye el mensaje solo con los datos completos, convirtiendo `Decimal` a `float`
+        event_data = {
+            "payment_id": payment.payment_id,
+            "user_id": payment.user_id,
+            "status": payment.status,
+            "status_detail": payment.status_detail,
+            "amount": float(payment.amount),  # Convertir Decimal a float
+            "currency_id": payment.currency_id,
+            "preference_id": payment.preference_id
+        }
+        
+        # Publica el mensaje solo si los datos clave están completos y no son `None`
+        if payment.payment_id and payment.status and payment.status_detail:
+            print("Intentando publicar en RabbitMQ:", event_data)  # Debug log
+            try:
+                self.publisher.publish(event_data)
+                print("Publicación en RabbitMQ exitosa.")
+            except Exception as e:
+                print(f"Error publicando en RabbitMQ: {e}")
+        else:
+            print("Datos incompletos; publicación en RabbitMQ omitida:", event_data)
