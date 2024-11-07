@@ -1,16 +1,19 @@
-from pymongo.collection import Collection
-from fastapi import Depends
-from src.notifications.infrastructure.MySqlNotificationRepository import MongoNotificationRepository
-from src.notifications.application.services.NotificationService import NotificationService
-from config.database import get_mongo_collection  # Función que retorna la colección de MongoDB
+# Notifications/src/notifications/infrastructure/NotificationDependecies.py
 
-def get_notification_service(db: Collection = Depends(get_mongo_collection)) -> NotificationService:
-    # Crear instancias de los repositorios usando la colección de MongoDB
+from fastapi import Depends
+from pymongo.collection import Collection
+from src.notifications.infrastructure.MySqlNotificationRepository import MongoNotificationRepository
+from src.notifications.application.useCases.NotificationCreator import NotificationCreator
+from src.notifications.domain.NotificationRepository import NotificationRepository
+from src.notifications.infrastructure.NotificationFactoryImpl import NotificationFactoryImpl
+from config.database import get_mongo_collection
+
+def get_notification_creator(db: Collection = Depends(get_mongo_collection)) -> NotificationCreator:
+    # Crear el repositorio de notificación
     notification_repository = MongoNotificationRepository(db)
     
-    # Crear instancia de NotificationService usando los repositorios
-    notification_service = NotificationService(
-        notification_repository=notification_repository
-    )
+    # Crear la fábrica de notificaciones que maneja distintos servicios
+    notification_factory = NotificationFactoryImpl()
     
-    return notification_service
+    # Instanciar y devolver NotificationCreator con las dependencias configuradas
+    return NotificationCreator(notification_repository=notification_repository, notification_factory=notification_factory)
