@@ -1,25 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from src.notifications.application.NotificationCreator import NotificationCreator
-from src.notifications.infrastructure.MySqlNotificationRepository import MongoNotificationRepository
-from src.notifications.application.NotificationUpdater import NotificationUpdater
-from src.notifications.application.NotificationEliminator import NotificationEliminator
-from src.notifications.domain.exceptions import InvalidNotificationTypeException
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from src.notifications.infrastructure.NotificationDependecies import get_notification_service
 from src.auth.jwt_handler import get_current_user
+from src.notifications.domain.exceptions import InvalidNotificationTypeException
 from slowapi.util import get_remote_address
 from slowapi import Limiter
-from config.database import get_mongo_collection
 from pydantic import BaseModel
 from typing import Optional
-from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from datetime import datetime
-
+from bson import ObjectId
+from src.notifications.application.services.NotificationService import NotificationService
 
 limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
-    prefix=("/api/v1/notifications"),
+    prefix="/api/v1/notifications",
     tags=["notifications"]
 )
 
@@ -37,7 +32,7 @@ class NotificationUpdateModel(BaseModel):
     link: Optional[str] = None
 
 class NotificationUpdateResponse(BaseModel):
-    id: int
+    id: str
     title: Optional[str] = None
     message: Optional[str] = None
     type: Optional[str] = None
@@ -49,18 +44,16 @@ class NotificationUpdateResponse(BaseModel):
 def create_notification(
     notification_data: NotificationCreateModel,
     request: Request,
-    db: Session = Depends(get_mongo_collection),
+    notification_service: NotificationService = Depends(get_notification_service),
     current_user: str = Depends(get_current_user)
 ):
-    notification_repo = MongoNotificationRepository(db)
-    notification_creator = NotificationCreator(notification_repo)
     try:
-        notification = notification_creator.create(
-            notification_data.user_id,
-            notification_data.title,
-            notification_data.message,
-            notification_data.type,
-            notification_data.link
+        notification = notification_service.create_notification(
+            user_id=notification_data.user_id,
+            title=notification_data.title,
+            content=notification_data.message,
+            type=notification_data.type,
+            link=notification_data.link
         )
         
         notification_dict = jsonable_encoder(notification)
@@ -70,66 +63,51 @@ def create_notification(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
-
 @router.put("/{notification_id}")
-@limiter.limit("2/minute")  
-def update_notifications(
-    notification_id: int, 
+@limiter.limit("2/minute")
+def update_notification_by_id(
+    request: Request,
+    notification_id: str,
     notification_data: NotificationUpdateModel,
-    request: Request,
-    db: Session = Depends(get_mongo_collection),
-    current_user: str = Depends(get_current_user),
-):
-    repo = MongoNotificationRepository(db)
-    try:
-        existing_notification = repo.find_by_id(notification_id)
-        if not existing_notification:
-            raise HTTPException(status_code=404, detail='Notification not found')
-        
-        # Actualizar campos según lo que se haya enviado
-        if notification_data.title:
-            existing_notification.title = notification_data.title
-        if notification_data.message:
-            existing_notification.message = notification_data.message
-        if notification_data.type:
-            existing_notification.type = notification_data.type
-        if notification_data.link:
-            existing_notification.link = notification_data.link
-        
-        updated_notification = repo.update(existing_notification)
-        
-        return NotificationUpdateResponse(
-            id=updated_notification.id,
-            status="success",
-            title=updated_notification.title,
-            message=updated_notification.message,
-            type=updated_notification.type,
-            link=updated_notification.link
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
-
-@router.delete("/")
-@limiter.limit("2/minute")  
-def delete_notifications(
-    request: Request,
-    notification_id: int = Query(..., description="ID of the notification to be deleted"),
-    db: Session = Depends(get_mongo_collection),
+    notification_service=Depends(get_notification_service),
     current_user: str = Depends(get_current_user)
 ):
-    repo = MongoNotificationRepository(db)
+    if not ObjectId.is_valid(notification_id):
+        raise HTTPException(status_code=400, detail="Invalid notification ID format.")
     
     try:
-        existing_notification = repo.find_by_id(notification_id)
-        if not existing_notification:
+        # Verifica si la notificación existe
+        existing_notification = notification_service.get_notification_by_id(notification_id)
+        if existing_notification is None:
             raise HTTPException(status_code=404, detail="Notification not found")
         
-        existing_notification.deleted_at = datetime.utcnow()
-        updated_notification = repo.update(existing_notification)
+        updated_notification = notification_service.update_notification(
+            identifier=notification_id,
+            title=notification_data.title,
+            content=notification_data.message,
+            type=notification_data.type,
+            link=notification_data.link
+        )
         
+        return {"message": "Notification updated successfully", "notification_id": jsonable_encoder(updated_notification)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
+    
+@router.delete("/{notification_id}")
+@limiter.limit("2/minute")  
+def delete_notifications(
+    notification_id: str,
+    request: Request,
+    notification_service: NotificationService = Depends(get_notification_service),
+    current_user: str = Depends(get_current_user)
+):
+    if not ObjectId.is_valid(notification_id):
+        raise HTTPException(status_code=400, detail="Invalid notification ID format. It must be a 24-character hex string.")
+
+    try:
+        notification_service.delete_notification(identifier=notification_id)
         return {
-            "message": f"Notification with ID {notification_id} marked as deleted successfully",
-            "deleted_at": updated_notification.deleted_at
+            "message": f"Notification with ID {notification_id} deleted successfully"
         }
         
     except ValueError as e:
