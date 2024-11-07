@@ -5,7 +5,7 @@ class NotificationEliminator:
     def __init__(self, notification_repository: NotificationRepository):
         self.notification_repository = notification_repository
         
-    def delete(self, notification_id: int):
+    def delete(self, notification_id: str):
         notification = self.notification_repository.find_by_id(notification_id)
         
         if not notification:

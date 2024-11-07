@@ -8,7 +8,7 @@ class NotificationRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, notification_id: int) -> Notification:
+    def find_by_id(self, notification_id: str) -> Notification:
         pass
 
     @abstractmethod
@@ -16,7 +16,7 @@ class NotificationRepository(ABC):
         pass
     
     @abstractmethod
-    def update(self, notification_id: int) -> Notification:
+    def update(self, notification_id: str) -> Notification:
         pass
 
     @abstractmethod
