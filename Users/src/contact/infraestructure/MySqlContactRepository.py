@@ -8,11 +8,17 @@ class MySqlContactRepository(ContactRepository):
     def __init__(self, db_session: Session):
         self.db_session = db_session
     
-    def save(self, contact: ContactModel) -> ContactModel:
+    def save(self, contact: Contact) -> Contact:
         """Guarda o actualiza un contacto en la base de datos."""
-        self.db_session.add(contact)
+        contact_model = ContactModel(
+            email=contact.email,
+            phone=contact.phone,
+            name=contact.name,
+            last_name=contact.last_name,
+        )
+        self.db_session.add(contact_model)
         self.db_session.commit()
-        self.db_session.refresh(contact)
+        self.db_session.refresh(contact_model)
         return contact
     
     def find_by_email_or_phone(self, email: str, phone: str, name: str, last_name: str) -> Optional[ContactModel]:

@@ -12,14 +12,6 @@ class Contact:
         self.created_at = created_at or datetime.now()
         self.updated_at = updated_at or datetime.now()
         self.deleted_at = deleted_at
-    
-    def soft_delete(self):
-        """Marca el contacto como eliminado (soft delete)"""
-        self.deleted_at = datetime.now()
-    
-    def is_deleted(self) -> bool:
-        """Retorna True si el contacto ha sido eliminado lógicamente"""
-        return self.deleted_at is not None
-    
-    def __repr__(self):
+        
+    def __repr__(self) -> str:
         return f"<Contact {self.email} for User {self.phone}>"

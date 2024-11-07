@@ -8,6 +8,7 @@ class MercadoPagoService:
     def create_preference(self, preference_data: dict):
         try:
             preference_response = self.sdk.preference().create(preference_data)
+           
             return preference_response["response"]
         except Exception as e:
             raise Exception(f"Error creating MercadoPago preference: {str(e)}")
