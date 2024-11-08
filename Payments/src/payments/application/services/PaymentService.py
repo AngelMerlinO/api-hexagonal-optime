@@ -114,7 +114,7 @@ class PaymentService:
         event_data = {
             "user_id": payment.user_id,
             "title": "Pago actualizado",
-            "message": f"Actualización del estado del pago con ID {payment.payment_id}: {payment.status_detail}.",
+            "message": f"Actualización del estado del pago con ID {payment.payment_id}: {payment.status_detail} con valor de {payment.amount}.",
             "type": "email",  # Tipo de notificación, puedes modificar según sea necesario
             "service_type": "email",  # Cambiar según el tipo de servicio que necesites (email o whatsapp)
             "link": f"https://example.com/payments/{payment.payment_id}",  # Enlace de referencia

@@ -19,11 +19,13 @@ class UserService:
         
         # Construir el mensaje de notificación en el formato requerido
         event = {
-            "user_id": new_user.uuid,  # ID del usuario recién creado
+            "uuid": new_user.uuid, # ID del usuario recién creado
+            "username": new_user.username,
+            "user_id": new_user.id,
             "title": "Usuario creado",
             "message": f"Registro exitoso para el usuario {new_user.username}.",
             "type": "email",  # Puedes cambiar a "sms" si el servicio lo requiere
-            "service_type": "whatsapp",  # Cambiar según el servicio ("email" o "whatsapp")
+            "service_type": "email",  # Cambiar según el servicio ("email" o "whatsapp")
             "link": "https://example.com/users/" + new_user.uuid,  # Enlace de referencia al perfil del usuario
             "user_details": {  # Información adicional sobre el usuario
                 "username": new_user.username,
