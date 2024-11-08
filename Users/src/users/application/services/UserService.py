@@ -5,7 +5,6 @@ from src.users.application.useCases.UserEliminator import UserEliminator
 from src.users.domain.UserRepository import UserRepository
 from src.contact.domain.ContactRepository import ContactRepository
 from src.users.domain.EventPublisher import EventPublisher
-
 class UserService:
     def __init__(self, user_repository: UserRepository, contact_repository: ContactRepository, publisher: EventPublisher):
         self.user_creator = UserCreator(user_repository, contact_repository)
@@ -15,8 +14,22 @@ class UserService:
         self.publisher = publisher
 
     def create_user(self, contact_id: int, username: str, password: str):
-        new_user = self.user_creator.create(contact_id, username,  password)
-        event = {"uuid": new_user.uuid, "username": new_user.username, "password": new_user.password}
+        # Crear el nuevo usuario
+        new_user = self.user_creator.create(contact_id, username, password)
+        
+        # Construir el mensaje de notificación en el formato requerido
+        event = {
+            "user_id": new_user.uuid,  # ID del usuario recién creado
+            "title": "Usuario creado",
+            "message": f"Registro exitoso para el usuario {new_user.username}.",
+            "type": "email",  # Puedes cambiar a "sms" si el servicio lo requiere
+            "service_type": "whatsapp",  # Cambiar según el servicio ("email" o "whatsapp")
+            "link": "https://example.com/users/" + new_user.uuid,  # Enlace de referencia al perfil del usuario
+            "user_details": {  # Información adicional sobre el usuario
+                "username": new_user.username,
+                "password": new_user.password
+            }
+        }
         self.publisher.publish(event)
         return new_user
 

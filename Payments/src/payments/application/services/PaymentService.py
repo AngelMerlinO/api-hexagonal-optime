@@ -112,13 +112,19 @@ class PaymentService:
         """Publica un mensaje a la cola de RabbitMQ con los detalles del pago solo cuando los datos clave están completos."""
         # Construye el mensaje solo con los datos completos, convirtiendo `Decimal` a `float`
         event_data = {
-            "payment_id": payment.payment_id,
             "user_id": payment.user_id,
-            "status": payment.status,
-            "status_detail": payment.status_detail,
-            "amount": float(payment.amount),  # Convertir Decimal a float
-            "currency_id": payment.currency_id,
-            "preference_id": payment.preference_id
+            "title": "Pago actualizado",
+            "message": f"Actualización del estado del pago con ID {payment.payment_id}: {payment.status_detail}.",
+            "type": "email",  # Tipo de notificación, puedes modificar según sea necesario
+            "service_type": "email",  # Cambiar según el tipo de servicio que necesites (email o whatsapp)
+            "link": f"https://example.com/payments/{payment.payment_id}",  # Enlace de referencia
+            "payment_details": {  # Detalles específicos del pago
+                "payment_id": payment.payment_id,
+                "status": payment.status,
+                "amount": float(payment.amount),
+                "currency_id": payment.currency_id,
+                "preference_id": payment.preference_id
+            }
         }
         
         # Publica el mensaje solo si los datos clave están completos y no son `None`
