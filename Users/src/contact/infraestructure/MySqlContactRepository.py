@@ -9,30 +9,37 @@ class MySqlContactRepository(ContactRepository):
         self.db_session = db_session
     
     def save(self, contact: Contact) -> Contact:
-        contact_model = ContactModel(
-            email=contact.email,
-            phone=contact.phone,
-            name=contact.name,
-            last_name=contact.last_name,
-        )
+        try:
+            contact_model = ContactModel(
+                email=contact.email,
+                phone=contact.phone,
+                name=contact.name,
+                last_name=contact.last_name,
+            )
+            
+            self.db_session.add(contact_model)
+            self.db_session.flush()  # Realiza flush para obtener el ID
+            self.db_session.refresh(contact_model)  # Refresca para obtener el ID
 
-        # Agrega y realiza un flush para obtener el ID sin cerrar la transacción
-        self.db_session.add(contact_model)
-        self.db_session.flush()
-        self.db_session.refresh(contact_model)  # Refresca para obtener el ID
+            print(f"ID después de flush y refresh: {contact_model.id}")  # Verifica que el ID esté presente
 
-        print(f"ID después de flush y refresh: {contact_model.id}")  # Verifica que el ID esté presente
+            # Verifica si necesitas hacer un commit aquí
+            self.db_session.commit()
 
-        return Contact(
-            id=contact_model.id,
-            email=contact_model.email,
-            phone=contact_model.phone,
-            name=contact_model.name,
-            last_name=contact_model.last_name,
-            created_at=contact_model.created_at,
-            updated_at=contact_model.updated_at,
-            deleted_at=contact_model.deleted_at
-        )
+            return Contact(
+                id=contact_model.id,
+                email=contact_model.email,
+                phone=contact_model.phone,
+                name=contact_model.name,
+                last_name=contact_model.last_name,
+                created_at=contact_model.created_at,
+                updated_at=contact_model.updated_at,
+                deleted_at=contact_model.deleted_at
+            )
+        except Exception as e:
+            print("Error al guardar el contacto en la base de datos:", e)
+            self.db_session.rollback()  # Revertir transacción en caso de error
+            raise
     
     def find_by_email_or_phone(self, email: str, phone: str, name: str, last_name: str) -> Optional[ContactModel]:
         """Busca un contacto por email o teléfono."""

@@ -1,11 +1,13 @@
 import os
 import uvicorn
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from src.routes import router
+from src.contact.infraestructure.ConsumerLambda.ConsumerContac import ContactConsumer  # Ajusta la importación según tu estructura de proyecto
 
 # Cargar las variables del archivo .env
 load_dotenv()
@@ -31,9 +33,22 @@ app.state.limiter = limiter
 # Registrar las rutas
 app.include_router(router)
 
+# Configurar el ContactConsumer en segundo plano
+async def start_contact_consumer():
+    # Instanciar el consumidor
+    consumer = ContactConsumer()
+    
+    # Iniciar el consumidor en un hilo asincrónico
+    await asyncio.to_thread(consumer.start_consuming)
+
+# Iniciar el consumidor de contactos cuando arranque FastAPI
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(start_contact_consumer())
+
 if __name__ == "__main__":
     # Leer las variables de entorno
-    port = int(os.getenv("PORT", 8001))
+    port = int(os.getenv("PORT", 8000))
     use_ssl = os.getenv("USE_SSL", "False") == "True"
     ssl_certfile = os.getenv("SSL_CERTFILE")
     ssl_keyfile = os.getenv("SSL_KEYFILE")
