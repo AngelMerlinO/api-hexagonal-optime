@@ -1,13 +1,13 @@
-# Notifications/src/notifications/infrastructure/NotificationRoutes.py
-
 from fastapi import APIRouter, Depends, HTTPException, Request
-from src.notifications.infrastructure.NotificationDependecies import get_notification_creator
+from src.notifications.infrastructure.NotificationDependecies import get_notification_creator, get_notification_updater, get_notification_eliminator
 from src.auth.jwt_handler import get_current_user
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.encoders import jsonable_encoder
 from src.notifications.application.useCases.NotificationCreator import NotificationCreator
+from src.notifications.application.useCases.NotificationUpdater import NotificationUpdater
+from src.notifications.application.useCases.NotificationEliminator import NotificationEliminator
 from bson import ObjectId
 
 router = APIRouter(
@@ -60,15 +60,15 @@ def update_notification_by_id(
     request: Request,
     notification_id: str,
     notification_data: NotificationUpdateModel,
-    notification_creator: NotificationCreator = Depends(get_notification_creator),
+    notification_updater: NotificationUpdater = Depends(get_notification_updater),
     current_user: str = Depends(get_current_user)
 ):
     if not ObjectId.is_valid(notification_id):
         raise HTTPException(status_code=400, detail="Invalid notification ID format.")
     
     try:
-        updated_notification = notification_creator.update(
-            identifier=notification_id,
+        updated_notification = notification_updater.update(
+            notification_id=notification_id,
             title=notification_data.title,
             message=notification_data.message,
             type=notification_data.type,
@@ -76,20 +76,25 @@ def update_notification_by_id(
         )
         
         return {"message": "Notification updated successfully", "notification_id": jsonable_encoder(updated_notification)}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except InvalidNotificationTypeException as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
     
+   
 @router.delete("/{notification_id}")
-def delete_notifications(
+def delete_notification_by_id(
     notification_id: str,
-    notification_creator: NotificationCreator = Depends(get_notification_creator),
+    notification_eliminator: NotificationEliminator = Depends(get_notification_eliminator),
     current_user: str = Depends(get_current_user)
 ):
     if not ObjectId.is_valid(notification_id):
         raise HTTPException(status_code=400, detail="Invalid notification ID format. It must be a 24-character hex string.")
 
     try:
-        notification_creator.delete(identifier=notification_id)
+        notification_eliminator.delete(notification_id=notification_id)
         return {
             "message": f"Notification with ID {notification_id} deleted successfully"
         }
