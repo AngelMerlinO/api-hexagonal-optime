@@ -1,5 +1,3 @@
-# Notifications/src/notifications/application/useCases/NotificationCreator.py
-
 from src.notifications.domain.NotificationRepository import NotificationRepository
 from src.notifications.domain.Notification import Notification, NotificationType
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
@@ -33,10 +31,10 @@ class NotificationCreator:
         # Guardar la notificación en el repositorio
         saved_notification = self.notification_repository.save(notification)
 
-        # Obtener el servicio de notificación adecuado
+        # Obtener el servicio de notificación adecuado (email o whatsapp) según `service_type`
         notification_service = self.notification_factory.get_notification_service(service_type)
         
-        # Enviar la notificación
+        # Enviar la notificación utilizando el servicio adecuado
         notification_service.send_notification(user_id, title, message)
 
         return saved_notification
