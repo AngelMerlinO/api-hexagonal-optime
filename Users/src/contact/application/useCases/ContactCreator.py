@@ -23,6 +23,7 @@ class ContactCreator:
         if not self._validate_phone(phone):
             raise InvalidContactDataException(f"Invalid phone format: {phone}")
 
+        # Crea y guarda el modelo ContactModel
         new_contact_model = ContactModel(
             email=email,
             phone=phone,
@@ -30,14 +31,23 @@ class ContactCreator:
             last_name=last_name
         )
 
-        self.contact_repository.save(new_contact_model)
+        # Guarda y asegura que el id esté disponible
+        saved_contact_model = self.contact_repository.save(new_contact_model)
 
-        return new_contact_model
+        # Convierte el ContactModel guardado en un Contact y lo devuelve
+        return Contact(
+            id=saved_contact_model.id,
+            email=saved_contact_model.email,
+            phone=saved_contact_model.phone,
+            name=saved_contact_model.name,
+            last_name=saved_contact_model.last_name,
+            created_at=saved_contact_model.created_at,
+            updated_at=saved_contact_model.updated_at,
+            deleted_at=saved_contact_model.deleted_at
+        )
 
     def _validate_email(self, email: str) -> bool:
-        """Validar si el formato de email es válido."""
         return '@' in email and '.' in email
 
     def _validate_phone(self, phone: str) -> bool:
-        """Validar si el formato del teléfono es válido (longitud o caracteres permitidos)."""
         return phone.isdigit() and len(phone) <= 20
