@@ -5,6 +5,7 @@ from src.users.application.useCases.UserEliminator import UserEliminator
 from src.users.domain.UserRepository import UserRepository
 from src.contact.domain.ContactRepository import ContactRepository
 from src.users.domain.EventPublisher import EventPublisher
+
 class UserService:
     def __init__(self, user_repository: UserRepository, contact_repository: ContactRepository, publisher: EventPublisher):
         self.user_creator = UserCreator(user_repository, contact_repository)
@@ -24,7 +25,7 @@ class UserService:
             "user_id": new_user.id,
             "title": "Usuario creado",
             "message": f"Registro exitoso para el usuario {new_user.username}.",
-            "type": "email",  # Puedes cambiar a "sms" si el servicio lo requiere
+            "type": "email",  
             "service_type": "email",  # Cambiar según el servicio ("email" o "whatsapp")
             "link": "https://example.com/users/" + new_user.uuid,  # Enlace de referencia al perfil del usuario
             "user_details": {  # Información adicional sobre el usuario
@@ -32,7 +33,7 @@ class UserService:
                 "password": new_user.password
             }
         }
-        self.publisher.publish(event)
+        self.publisher.publish(event, routing_key='user.created')
         return new_user
 
     def update_user(self, identifier: str, username: str = None, password: str = None):
