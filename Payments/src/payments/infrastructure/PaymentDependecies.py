@@ -8,9 +8,10 @@ from config.database import get_db
 
 rabbitmq_publisher = RabbitMQ(
     host='34.236.102.207',
-    queue='payment_success_queue',
+    queue='notifications_queue',
     username='usuario',
-    password='password'
+    password='password',
+    routing_key='payment.created'
 )
 
 def get_payment_service(db: Session = Depends(get_db)) -> PaymentService:

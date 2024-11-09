@@ -131,7 +131,7 @@ class PaymentService:
         if payment.payment_id and payment.status and payment.status_detail:
             print("Intentando publicar en RabbitMQ:", event_data)  # Debug log
             try:
-                self.publisher.publish(event_data)
+                self.publisher.publish(event_data, routing_key='payment.created')
                 print("Publicación en RabbitMQ exitosa.")
             except Exception as e:
                 print(f"Error publicando en RabbitMQ: {e}")
