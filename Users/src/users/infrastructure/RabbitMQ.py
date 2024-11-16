@@ -3,7 +3,7 @@ import json
 from src.users.domain.EventPublisher import EventPublisher
 
 class RabbitMQ(EventPublisher):
-    def __init__(self, host='34.236.102.207', queue='user_created_queue', username='usuario', password='password'):
+    def __init__(self, host='34.236.102.207', queue='notifications_queue', username='usuario', password='password', routing_key='user.created'):
         self.host = host
         self.queue = queue
         credentials = pika.PlainCredentials(username, password)
@@ -12,21 +12,21 @@ class RabbitMQ(EventPublisher):
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
         
-        exchange_name = 'user_events_exchange'
+        # Configuración del Exchange y Cola de Notificaciones
+        exchange_name = 'notifications_exchange'
         self.channel.exchange_declare(exchange=exchange_name, exchange_type='direct', durable=True)
         self.channel.queue_declare(queue=self.queue, durable=True)
         
-        routing_key = 'user.created'
-        self.channel.queue_bind(exchange=exchange_name, queue=self.queue, routing_key=routing_key)
+        # Bind de la cola con ambas Routing Keys
+        self.channel.queue_bind(exchange=exchange_name, queue=self.queue, routing_key='user.created')
     
-    def publish(self, message: dict):
+    def publish(self, message: dict, routing_key: str):
         self.channel.basic_publish(
-            exchange='user_events_exchange',
-            routing_key='user.created',
+            exchange='notifications_exchange',
+            routing_key=routing_key,
             body=json.dumps(message),
-            properties=pika.BasicProperties(delivery_mode=2)  
+            properties=pika.BasicProperties(delivery_mode=2)
         )
-       
+    
     def close(self):
-       
         self.connection.close()

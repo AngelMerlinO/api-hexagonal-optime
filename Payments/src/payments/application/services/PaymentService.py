@@ -112,20 +112,26 @@ class PaymentService:
         """Publica un mensaje a la cola de RabbitMQ con los detalles del pago solo cuando los datos clave están completos."""
         # Construye el mensaje solo con los datos completos, convirtiendo `Decimal` a `float`
         event_data = {
-            "payment_id": payment.payment_id,
             "user_id": payment.user_id,
-            "status": payment.status,
-            "status_detail": payment.status_detail,
-            "amount": float(payment.amount),  # Convertir Decimal a float
-            "currency_id": payment.currency_id,
-            "preference_id": payment.preference_id
+            "title": "Estado de  pago ",
+            "message": f"El estado del pago con ID {payment.payment_id}: {payment.status_detail} con valor de {payment.amount}.",
+            "type": "email",  # Tipo de notificación, puedes modificar según sea necesario
+            "service_type": "email",  # Cambiar según el tipo de servicio que necesites (email o whatsapp)
+            "link": f"https://example.com/payments/{payment.payment_id}",  # Enlace de referencia
+            "payment_details": {  # Detalles específicos del pago
+                "payment_id": payment.payment_id,
+                "status": payment.status,
+                "amount": float(payment.amount),
+                "currency_id": payment.currency_id,
+                "preference_id": payment.preference_id
+            }
         }
         
         # Publica el mensaje solo si los datos clave están completos y no son `None`
         if payment.payment_id and payment.status and payment.status_detail:
             print("Intentando publicar en RabbitMQ:", event_data)  # Debug log
             try:
-                self.publisher.publish(event_data)
+                self.publisher.publish(event_data, routing_key='payment.created')
                 print("Publicación en RabbitMQ exitosa.")
             except Exception as e:
                 print(f"Error publicando en RabbitMQ: {e}")

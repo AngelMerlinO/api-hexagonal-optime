@@ -15,9 +15,25 @@ class UserService:
         self.publisher = publisher
 
     def create_user(self, contact_id: int, username: str, password: str):
-        new_user = self.user_creator.create(contact_id, username,  password)
-        event = {"uuid": new_user.uuid, "username": new_user.username, "password": new_user.password}
-        self.publisher.publish(event)
+        # Crear el nuevo usuario
+        new_user = self.user_creator.create(contact_id, username, password)
+        
+        # Construir el mensaje de notificación en el formato requerido
+        event = {
+            "uuid": new_user.uuid, # ID del usuario recién creado
+            "username": new_user.username,
+            "user_id": new_user.id,
+            "title": "Usuario creado",
+            "message": f"Registro exitoso para el usuario {new_user.username}.",
+            "type": "email",  
+            "service_type": "email",  # Cambiar según el servicio ("email" o "whatsapp")
+            "link": "https://example.com/users/" + new_user.uuid,  # Enlace de referencia al perfil del usuario
+            "user_details": {  # Información adicional sobre el usuario
+                "username": new_user.username,
+                "password": new_user.password
+            }
+        }
+        self.publisher.publish(event, routing_key='user.created')
         return new_user
 
     def update_user(self, identifier: str, username: str = None, password: str = None):

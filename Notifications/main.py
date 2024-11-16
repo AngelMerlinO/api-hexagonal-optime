@@ -1,12 +1,16 @@
 import os
 import uvicorn
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from pymongo import MongoClient
 from src.routes import router
-
+from src.notifications.infrastructure.MySqlNotificationRepository import MongoNotificationRepository
+from src.notifications.application.services.NotificationService import NotificationService
+from src.notifications.infrastructure.NotificationConsumer import NotificationConsumer
 # Cargar las variables del archivo .env
 load_dotenv()
 
@@ -30,6 +34,29 @@ app.state.limiter = limiter
 
 # Registrar las rutas
 app.include_router(router)
+
+# Configurar MongoDB y el NotificationConsumer en segundo plano
+async def start_notification_consumer():
+    # Conectar a MongoDB usando la URI y la base de datos desde el archivo .env
+    mongo_uri = os.getenv("MONGO_DB")
+    mongo_db_name = os.getenv("DB_NAME")
+    
+    mongo_client = MongoClient(mongo_uri)
+    db = mongo_client[mongo_db_name]
+    collection = db["notifications"]  # Nombre de colección fijo, o puedes agregar otra variable en .env para configurarlo
+
+    # Instancia del repositorio y servicio
+    notification_repository = MongoNotificationRepository(collection)
+    notification_service = NotificationService(notification_repository)
+    consumer = NotificationConsumer(notification_service)
+    
+    # Iniciar el consumidor
+    await asyncio.to_thread(consumer.start_consuming)
+
+# Iniciar el consumidor de notificaciones cuando arranque FastAPI
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(start_notification_consumer())
 
 if __name__ == "__main__":
     # Leer las variables de entorno
