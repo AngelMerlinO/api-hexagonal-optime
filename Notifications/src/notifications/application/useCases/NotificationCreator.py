@@ -1,9 +1,7 @@
-# Notifications/src/notifications/application/useCases/NotificationCreator.py
-
 from src.notifications.domain.NotificationRepository import NotificationRepository
 from src.notifications.domain.Notification import Notification, NotificationType
 from src.notifications.domain.exceptions import InvalidNotificationTypeException
-from src.notifications.domain.NotificationFactory import NotificationFactory  # Importar la fábrica
+from src.notifications.domain.NotificationFactory import NotificationFactory
 import uuid
 from datetime import datetime, timezone
 

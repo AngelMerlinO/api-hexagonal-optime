@@ -1,5 +1,3 @@
-# Payments/src/payments/application/usesCases/PaymentCreator.py
-
 from src.payments.domain.PaymentRepository import PaymentRepository
 from src.payments.domain.Payment import Payment
 
