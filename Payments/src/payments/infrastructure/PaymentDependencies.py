@@ -6,10 +6,10 @@ from src.payments.application.services.PaymentService import PaymentService
 from config.database import get_db
 
 rabbitmq_publisher = RabbitMQ(
-    host='34.236.102.207',
+    host='52.72.86.85',
     queue='payment_success_queue',
-    username='usuario',
-    password='password'
+    username='optimeroot',
+    password='optimeroot'
 )
 
 def get_payment_service(db: Session = Depends(get_db)) -> PaymentService:

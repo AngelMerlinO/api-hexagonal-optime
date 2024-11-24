@@ -3,7 +3,7 @@ import json
 from src.payments.domain.EventPublisher import EventPublisher
 
 class RabbitMQ(EventPublisher):
-    def __init__(self, host='34.236.102.207', queue='notifications_queue', username='usuario', password='password', routing_key='user.created'):
+    def __init__(self, host='52.72.86.85', queue='notifications_queue', username='optimeroot', password='optimeroot', routing_key='user.created'):
         self.host = host
         self.queue = queue
         credentials = pika.PlainCredentials(username, password)

@@ -37,9 +37,9 @@ class NotificationConsumer:
 
     def start_consuming(self):
         # Configurar conexión con RabbitMQ
-        credentials = pika.PlainCredentials('usuario', 'password')
+        credentials = pika.PlainCredentials('optimeroot', 'optimeroot')
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='34.236.102.207', credentials=credentials)
+            pika.ConnectionParameters(host='52.72.86.85', credentials=credentials)
         )
         channel = connection.channel()
 

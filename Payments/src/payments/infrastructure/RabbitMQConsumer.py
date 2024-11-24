@@ -2,7 +2,7 @@ import pika
 import json
 
 class RabbitMQConsumer:
-    def __init__(self, host='34.236.102.207', queue='payment_success_queue', username='usuario', password='password'):
+    def __init__(self, host='52.72.86.85', queue='payment_success_queue', username='usuario', password='password'):
         self.host = host
         self.queue = queue
         credentials = pika.PlainCredentials(username, password)
