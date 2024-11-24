@@ -6,10 +6,10 @@ from src.contact.application.services.ContactService import ContactService
 from config.database import get_db
 
 rabbitmq_publisher = RabbitMQ(
-    host='34.236.102.207',
-    queue='contact_created_queue',
-    username='usuario',
-    password="password",
+    host='52.72.86.85',
+    queue='contact_queue_create',
+    username='optimeroot',
+    password="optimeroot",
 )
 
 def get_contact_service(db: Session = Depends(get_db)) -> ContactService:

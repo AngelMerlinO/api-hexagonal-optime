@@ -9,10 +9,10 @@ from config.database import get_db
 
 # Configuración de RabbitMQ como publicador
 rabbitmq_publisher = RabbitMQ(
-    host='34.236.102.207',
+    host='52.72.86.85',
     queue='notifications_queue',
-    username='usuario',
-    password='password',
+    username='optimeroot',
+    password='optimeroot',
     routing_key='user.created'
 )
 

@@ -3,7 +3,7 @@ import json
 from src.users.application.services.UserEventHandler import UserEventHandler
 
 class RabbitMQConsumer:
-    def __init__(self, host='34.236.102.207', queue='user_created_queue', username='usuario', password='password'):
+    def __init__(self, host='52.72.86.85', queue='user_created_queue', username='optimeroot', password='optimeroot'):
         self.host = host
         self.queue = queue
         credentials = pika.PlainCredentials(username, password)

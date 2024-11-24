@@ -3,7 +3,7 @@ import json
 from src.contact.domain.EventPublisher import EventPublisher
 
 class RabbitMQ(EventPublisher):
-    def __init__(self, host='34.136.102.207', queue='contact_queue_create', username='usuario', password='password'):
+    def __init__(self, host='52.72.86.85', queue='contact_queue_create', username='optimeroot', password='optimeroot'):
         self.host = host
         self.queue = queue
         credentials = pika.PlainCredentials(username, password)

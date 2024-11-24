@@ -6,9 +6,9 @@ import time
 class ContactConsumer:
     def __init__(self, max_retries=5):
         # Configuración de conexión a RabbitMQ
-        credentials = pika.PlainCredentials('usuario', 'password')
+        credentials = pika.PlainCredentials('optimeroot', 'optimeroot')
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='34.236.102.207', credentials=credentials)
+            pika.ConnectionParameters(host='52.72.86.85', credentials=credentials)
         )
         self.channel = self.connection.channel()
         self.max_retries = max_retries  # Número máximo de reintentos antes de enviar a la DLQ
