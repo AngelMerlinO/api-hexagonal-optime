@@ -19,7 +19,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Importar los modelos para que Alembic los detecte
-from src.activities.domain.Activities import Activities
+
+from src.subject.domain.subjects import Subjects
+from src.schedules.domain.schedules import Schedules
 
 # Establecer los metadatos de los modelos
 target_metadata = Base.metadata
