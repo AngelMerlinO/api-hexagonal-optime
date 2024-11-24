@@ -20,8 +20,8 @@ if config.config_file_name is not None:
 
 # Importar los modelos para que Alembic los detecte
 
-from src.subject.domain.subjects import Subjects
-from src.schedules.domain.schedules import Schedules
+from src.subject.domain.subject import Subject
+from src.schedules.domain.schedule import Schedule
 
 # Establecer los metadatos de los modelos
 target_metadata = Base.metadata
