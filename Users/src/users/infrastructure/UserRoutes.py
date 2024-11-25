@@ -65,10 +65,19 @@ def login(
 ):
     user_service = get_user_service(db)
     user_model = user_service.user_by_username(user.username)
+
     if not user_model or user_model.password != user.password:
         raise HTTPException(status_code=400, detail="Credenciales inválidas")
+    
+    # Crear un token con el username
     access_token = create_access_token(data={"sub": user_model.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    # Retornar token y user_id
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user_model.id  
+    }
 
 @router.get("/{user_id}")
 @limiter.limit("5/minute")
