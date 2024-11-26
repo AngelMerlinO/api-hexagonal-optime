@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from src.users.domain.UserRepository import UserRepository
 from src.users.infrastructure.orm.UserModel import UserModel
+from src.contact.infraestructure.orm.ContactModel import ContactModel
 from src.users.domain.User import User
 from typing import Optional
 from datetime import datetime
@@ -55,11 +56,31 @@ class MySqlUserRepository(UserRepository):
         self.db.commit()
         return user_model
 
-    def find_by_id(self, id: int) -> User:
-        user_model = self.db.query(UserModel).filter(UserModel.id == id).first()
+    def find_by_id(self, id: int) -> dict:
+        user_model = (
+            self.db.query(UserModel)
+            .filter(UserModel.id == id)
+            .outerjoin(ContactModel, UserModel.contact_id == ContactModel.id)
+            .first()
+        )
+        
         if not user_model:
             raise ValueError(f"User with ID {id} not found")
-        return user_model
+
+        # Construir el objeto User con datos del Contact o un contacto vacío
+        contact = {
+            "id": user_model.contacts.id if user_model.contacts else None,
+            "email": user_model.contacts.email if user_model.contacts else None,
+            "phone": user_model.contacts.phone if user_model.contacts else None
+        } if user_model.contacts else {}
+
+        return {
+            "id": user_model.id,
+            "username": user_model.username,
+            "password": user_model.password,
+            "uuid": user_model.uuid,
+            "contact": contact
+        }
 
     def find_by_uuid(self, uuid: str) -> User:
         user_model = self.db.query(UserModel).filter(UserModel.uuid == uuid).first()

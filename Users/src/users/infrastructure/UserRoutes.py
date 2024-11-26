@@ -88,10 +88,10 @@ def find_user_by_id(
     current_user: str = Depends(get_current_user)
 ):
     try:
-        user = user_service.user_by_id(user_id)
-        if not user:
+        user_with_contact = user_service.user_by_id(user_id)
+        if not user_with_contact:
             raise HTTPException(status_code=404, detail="User not found")
-        return user
+        return user_with_contact
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
