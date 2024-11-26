@@ -25,18 +25,18 @@ class ContactCreate(BaseModel):
 # Ruta para crear un contacto
 @router.post("/")
 @limiter.limit("2/minute")
-def create_contact(contact_data: ContactCreate, request: Request, contact_service = Depends(get_contact_service)):
+def create_contact(contact_data: ContactCreate, request: Request, contact_service=Depends(get_contact_service)):
     try:
         # Llamar al servicio de contacto para crear el contacto
-        contact_service.create_contact(
+        new_contact = contact_service.create_contact(
             email=contact_data.email,
             phone=contact_data.phone,
             name=contact_data.name,
             last_name=contact_data.last_name
         )
         
-        # Respuesta exitosa
-        return {"message": "Contact created successfully"}
+        # Retornar el ID del contacto creado
+        return {"message": "Contact created successfully", "contact_id": new_contact.id}
     
     except ContactAlreadyExistsException as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -45,4 +45,5 @@ def create_contact(contact_data: ContactCreate, request: Request, contact_servic
         raise HTTPException(status_code=400, detail=str(e))
     
     except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
         raise HTTPException(status_code=500, detail="Internal Server Error")
