@@ -23,7 +23,7 @@ class ContactConsumer:
         }
 
         # URL de la función Lambda
-        LAMBDA_URL = 'https://2qwsze5abp5zlz64shmy2tppey0asecr.lambda-url.us-east-1.on.aws/'
+        LAMBDA_URL = 'https://vnl7qislofiherevwep4srfr3e0mnbav.lambda-url.us-east-1.on.aws/'
 
         for attempt in range(self.max_retries):
             try:
