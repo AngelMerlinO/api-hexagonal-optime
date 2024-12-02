@@ -12,3 +12,4 @@ test.db
 user
 cert.pem
 key.pem
+ssl/
