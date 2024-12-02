@@ -16,4 +16,4 @@ if __name__ == '__main__':
         app.run(debug=True, host='0.0.0.0', port=int(port), ssl_context=(cert_path, key_path))
     else:
         print("Los archivos de certificado no se encontraron. Usando HTTP en su lugar.")
-        app.run(debug=True, host='0.0.0.0', port=4005)
+        app.run(debug=True, host='0.0.0.0', port=4006)
