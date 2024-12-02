@@ -2,8 +2,12 @@ import jwt
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from dotenv import load_dotenv
+import os
 
-SECRET_KEY = "mysecretkey"
+load_dotenv("../../config/.env")
+
+SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
