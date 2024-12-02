@@ -33,7 +33,7 @@ app.include_router(router)
 
 if __name__ == "__main__":
     # Leer las variables de entorno
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 4004))
     use_ssl = os.getenv("USE_SSL", "False") == "True"
     ssl_certfile = os.getenv("SSL_CERTFILE")
     ssl_keyfile = os.getenv("SSL_KEYFILE")

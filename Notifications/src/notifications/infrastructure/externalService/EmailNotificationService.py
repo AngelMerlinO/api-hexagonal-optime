@@ -11,7 +11,7 @@ class EmailNotificationService(NotificationService):
             "body": f"<html><body><h1>{title}</h1><p>{message}</p></body></html>"
         }
         
-        lambda_url = 'https://xeaeavolvub4rybqv64adk7yhq0wajln.lambda-url.us-east-1.on.aws/'
+        lambda_url = 'https://z6ek44h52vjowerl5tofndsr2i0ozqob.lambda-url.us-east-1.on.aws/'
 
         response = requests.post(lambda_url, json=email_payload)
 

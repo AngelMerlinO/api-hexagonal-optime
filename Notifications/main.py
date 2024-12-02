@@ -60,7 +60,7 @@ async def startup_event():
 
 if __name__ == "__main__":
     # Leer las variables de entorno
-    port = int(os.getenv("PORT", 8002))
+    port = int(os.getenv("PORT", 4002))
     use_ssl = os.getenv("USE_SSL", "False") == "True"
     ssl_certfile = os.getenv("SSL_CERTFILE")
     ssl_keyfile = os.getenv("SSL_KEYFILE")
