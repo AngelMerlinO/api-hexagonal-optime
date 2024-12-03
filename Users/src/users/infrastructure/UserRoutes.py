@@ -7,6 +7,7 @@ from pydantic import BaseModel, EmailStr, constr, validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from typing import Optional
+import bcrypt
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -66,9 +67,13 @@ def login(
     user_service = get_user_service(db)
     user_model = user_service.user_by_username(user.username)
 
-    if not user_model or user_model.password != user.password:
+    if not user_model:
         raise HTTPException(status_code=400, detail="Credenciales inválidas")
     
+    # Verificar si la contraseña ingresada corresponde con el hash almacenado
+    if not bcrypt.checkpw(user.password.encode('utf-8'), user_model.password.encode('utf-8')):
+        raise HTTPException(status_code=400, detail="Credenciales inválidas")
+
     # Crear un token con el username
     access_token = create_access_token(data={"sub": user_model.username})
     
