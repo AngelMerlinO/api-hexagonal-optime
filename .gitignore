@@ -10,3 +10,6 @@ __pycache__
 entorno_optime
 test.db
 user
+cert.pem
+key.pem
+ssl/
