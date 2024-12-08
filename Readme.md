@@ -61,6 +61,7 @@ Guía de Instalación y Ejecución
 **Requerimientos:**
   - MySQL Server
   - Python 3.11
+  - nodejs 
   - Ngrok
   - Channels
 
@@ -70,7 +71,7 @@ Guía de Instalación y Ejecución
   3. Activar el entorno virtual:
       - Windows: `venv\Scriptsctivate`
       - macOS/Linux: `source venv/bin/activate`
-  4. Instalar las dependencias: `pip install -r requirements.txt`
+  4. Instalar las dependencias: `pip install -r requirements.txt` o `npm install ` dependiendo la tecnologia del microservicio. 
   5. Ejecutar el script `config/create_db_user.sql` en tu administrador de base de datos.
   6. Crear el archivo `.env` utilizando el ejemplo proporcionado en el proyecto .envExample.
   7. Configurar los tokens de acceso de servicios externos como Mercado Pago o Meta API en tu archivo `.env`.
