@@ -62,6 +62,7 @@ Guía de Instalación y Ejecución
   - MySQL Server
   - Python 3.11
   - Ngrok
+  - Channels
 
 **Pasos para la Instalación:**
   1. Clonar el repositorio: `git clone <url-del-repositorio>`
@@ -80,6 +81,8 @@ Guía de Instalación y Ejecución
   12. En caso de usar certificados ssl `uvicorn main:app --host 0.0.0.0 --port $PORT --reload --ssl-keyfile=$SSL_KEYFILE --ssl-certfile=$SSL_CERTFILE`
   13. En caso de usar microservicios `uvicorn main:app --reload --port *puerto a usar*`
   14. En caso de usar microservicios `uvicorn main:app --host 0.0.0.0 --port 8000 --reload`
+  15. Para poder correr los channels debemos de instalar los siguientes paquetes: `npm install amqplib cors dotenv express mysql2`
+  16. Para ejecutar los channels debemos de escribir los siguientes comandos: `npm run dev` o `nodemon server.js`
 
   
   12. Testear los endpoints utilizando Postman: [Documentación de Postman Api-Optime](https://documenter.getpostman.com/view/30415321/2sAXxLBZW6#79b970a8-df6b-486c-936c-eb714da4815cT)
